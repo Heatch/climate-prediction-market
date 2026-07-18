@@ -1,40 +1,9 @@
 use anchor_lang::prelude::*;
 
-use crate::constants::{MARKET_SEED, PROTOCOL_SEED, VAULT_SEED};
 use crate::errors::ClimateMarketError;
 use crate::events::MarketCreated;
-use crate::state::{Market, MarketOutcome, MarketStatus, MarketVault, ProtocolConfig};
-
-#[derive(Accounts)]
-#[instruction(market_id: u64)]
-pub struct CreateMarket<'info> {
-    #[account(
-        mut,
-        seeds = [PROTOCOL_SEED],
-        bump = protocol.bump,
-        has_one = authority @ ClimateMarketError::UnauthorizedAuthority
-    )]
-    pub protocol: Account<'info, ProtocolConfig>,
-    #[account(
-        init,
-        payer = authority,
-        space = Market::SPACE,
-        seeds = [MARKET_SEED, &market_id.to_le_bytes()],
-        bump
-    )]
-    pub market: Account<'info, Market>,
-    #[account(
-        init,
-        payer = authority,
-        space = MarketVault::SPACE,
-        seeds = [VAULT_SEED, market.key().as_ref()],
-        bump
-    )]
-    pub vault: Account<'info, MarketVault>,
-    #[account(mut)]
-    pub authority: Signer<'info>,
-    pub system_program: Program<'info, System>,
-}
+use crate::state::{MarketOutcome, MarketStatus};
+use crate::CreateMarket;
 
 pub fn handler(
     ctx: Context<CreateMarket>,
@@ -95,4 +64,3 @@ pub fn handler(
     });
     Ok(())
 }
-

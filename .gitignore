@@ -12,3 +12,5 @@ test-ledger/
 *.log
 *.tsbuildinfo
 .DS_Store
+DEPLOY-PLAN.md
+diagnose.mjs
