@@ -3,24 +3,14 @@
 import { MiniMarketChart } from "@/components/markets/MarketChart"
 import { useGlobeLink } from "@/components/providers/GlobeLinkProvider"
 import { useMarkets } from "@/components/providers/MarketProvider"
-import type { ClimateMarket, MarketCategory } from "@/lib/markets/types"
+import { CATEGORY_SYMBOLS } from "@/lib/markets/categories"
+import type { ClimateMarket } from "@/lib/markets/types"
 import {
   formatCompact,
   formatCountdown,
   formatProbability,
 } from "@/lib/utils/format"
 import { clampProbability, likelihoodColor } from "@/lib/utils/likelihood"
-
-const CATEGORY_SYMBOLS: Record<MarketCategory, string> = {
-  hurricane: "◎",
-  drought: "◌",
-  temperature: "↑",
-  rainfall: "≋",
-  "crop-yield": "⌁",
-  wildfire: "△",
-  flooding: "≈",
-  other: "◇",
-}
 
 const CLOSING_SOON_DAYS = 30
 const NEW_DAYS = 35
@@ -30,12 +20,14 @@ interface MarketListItemProps {
   market: ClimateMarket
   onSelect: (market: ClimateMarket) => void
   compact?: boolean
+  tone?: "light" | "dark"
 }
 
 export default function MarketListItem({
   market,
   onSelect,
   compact = false,
+  tone = "light",
 }: MarketListItemProps) {
   const { setHoveredMarketId } = useGlobeLink()
   const { now } = useMarkets()
@@ -53,6 +45,7 @@ export default function MarketListItem({
     daysToClose <= CLOSING_SOON_DAYS
   const daysSinceCreated = (now - Date.parse(market.createdAt)) / DAY_MS
   const isNew = now > 0 && daysSinceCreated >= 0 && daysSinceCreated <= NEW_DAYS
+  const isDark = tone === "dark"
 
   return (
     <button
@@ -62,22 +55,38 @@ export default function MarketListItem({
       onMouseLeave={() => setHoveredMarketId(null)}
       onFocus={() => setHoveredMarketId(market.id)}
       onBlur={() => setHoveredMarketId(null)}
-      className={`group w-full rounded-2xl border border-neutral-200 bg-white text-left transition hover:-translate-y-0.5 hover:border-neutral-400 hover:shadow-lg hover:shadow-black/5 ${
-        compact ? "p-3.5" : "p-4"
-      }`}
+      className={`group w-full rounded-2xl border text-left transition hover:-translate-y-0.5 hover:shadow-lg ${
+        isDark
+          ? "border-white/10 bg-white/[0.055] text-white hover:border-white/25 hover:bg-white/[0.09] hover:shadow-black/30"
+          : "border-neutral-200 bg-white hover:border-neutral-400 hover:shadow-black/5"
+      } ${compact ? "p-3.5" : "p-4"}`}
       aria-label={`Open market: ${market.question}. YES ${yesProbability}, NO ${noProbability}.`}
     >
       <div className="flex items-start gap-3">
         <span
-          className="grid size-9 shrink-0 place-items-center rounded-full border border-neutral-200 bg-neutral-50 text-lg font-medium"
+          className={`grid size-9 shrink-0 place-items-center rounded-full border text-lg font-medium ${
+            isDark
+              ? "border-white/15 bg-white/[0.07] text-white"
+              : "border-neutral-200 bg-neutral-50"
+          }`}
           aria-hidden="true"
         >
           {CATEGORY_SYMBOLS[market.category]}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 overflow-hidden">
-            <span className="eyebrow truncate">{market.region}</span>
-            <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-neutral-500">
+            <span
+              className={`eyebrow truncate ${isDark ? "!text-neutral-400" : ""}`}
+            >
+              {market.region}
+            </span>
+            <span
+              className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+                isDark
+                  ? "bg-white/10 text-neutral-300"
+                  : "bg-neutral-100 text-neutral-500"
+              }`}
+            >
               {market.status}
             </span>
             {isClosingSoon && (
@@ -86,7 +95,13 @@ export default function MarketListItem({
               </span>
             )}
             {isNew && (
-              <span className="shrink-0 rounded-full bg-neutral-900 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+              <span
+                className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+                  isDark
+                    ? "bg-white text-neutral-950"
+                    : "bg-neutral-900 text-white"
+                }`}
+              >
                 New
               </span>
             )}
@@ -98,25 +113,45 @@ export default function MarketListItem({
           </h3>
         </div>
         <span
-          className="mt-1 text-neutral-400 transition group-hover:translate-x-0.5 group-hover:text-ink"
+          className={`mt-1 transition group-hover:translate-x-0.5 ${
+            isDark
+              ? "text-neutral-500 group-hover:text-white"
+              : "text-neutral-400 group-hover:text-ink"
+          }`}
           aria-hidden="true"
         >
           →
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-[1fr_auto] items-end gap-3 border-t border-neutral-100 pt-3">
+      <div
+        className={`mt-4 grid grid-cols-[1fr_auto] items-end gap-3 border-t pt-3 ${
+          isDark ? "border-white/10" : "border-neutral-100"
+        }`}
+      >
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
-            <span className="rounded-md bg-ink px-2 py-1 text-[10px] font-bold text-white">
+            <span
+              className={`rounded-md px-2 py-1 text-[10px] font-bold ${
+                isDark ? "bg-white text-neutral-950" : "bg-ink text-white"
+              }`}
+            >
               YES {yesProbability}
             </span>
-            <span className="rounded-md border border-neutral-300 px-2 py-1 text-[10px] font-bold text-neutral-600">
+            <span
+              className={`rounded-md border px-2 py-1 text-[10px] font-bold ${
+                isDark
+                  ? "border-white/20 text-neutral-300"
+                  : "border-neutral-300 text-neutral-600"
+              }`}
+            >
               NO {noProbability}
             </span>
           </div>
           <div
-            className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-neutral-200"
+            className={`mt-2 h-1.5 w-full overflow-hidden rounded-full ${
+              isDark ? "bg-white/10" : "bg-neutral-200"
+            }`}
             role="img"
             aria-label={`YES likelihood ${yesProbability}`}
           >
@@ -128,12 +163,16 @@ export default function MarketListItem({
               }}
             />
           </div>
-          <p className="mt-2 text-[10px] text-neutral-500">
+          <p
+            className={`mt-2 text-[10px] ${
+              isDark ? "text-neutral-400" : "text-neutral-500"
+            }`}
+          >
             {formatCompact(market.totalVolume)} SOL volume ·{" "}
             {formatCountdown(market.closeTime)}
           </p>
         </div>
-        <div className="text-ink">
+        <div className={isDark ? "text-neutral-200" : "text-ink"}>
           <MiniMarketChart history={market.history} />
         </div>
       </div>

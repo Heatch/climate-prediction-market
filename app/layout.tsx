@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Klashi — Climate markets on Solana",
+  title: "Klashi — Global climate signal markets",
   description:
     "An experimental Solana Devnet prototype for exploring and trading pooled climate prediction markets.",
 }
@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  colorScheme: "light",
-  themeColor: "#f7f7f3",
+  colorScheme: "dark",
+  themeColor: "#030605",
 }
 
 export default function RootLayout({
