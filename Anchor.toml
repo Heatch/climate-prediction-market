@@ -1,0 +1,25 @@
+[toolchain]
+anchor_version = "0.30.1"
+
+[features]
+resolution = false
+skip-lint = false
+
+[programs.localnet]
+climate_market = "8THvFM9mEZEyzcxgnYU18BS4GNDJqK1Xixkjnuc5yted"
+
+[programs.devnet]
+climate_market = "8THvFM9mEZEyzcxgnYU18BS4GNDJqK1Xixkjnuc5yted"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "npx vitest run --config programs/climate_market/vitest.config.mts"
+
+[workspace]
+types = "target/types"
