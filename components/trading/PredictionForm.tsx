@@ -14,6 +14,7 @@ const DEFAULT_NETWORK_FEE_SOL = 0.000005
 
 interface PredictionFormProps {
   market: ClimateMarket
+  tone?: "light" | "dark"
 }
 
 function parseAmount(value: string) {
@@ -21,7 +22,10 @@ function parseAmount(value: string) {
   return Number(value)
 }
 
-export default function PredictionForm({ market }: PredictionFormProps) {
+export default function PredictionForm({
+  market,
+  tone = "light",
+}: PredictionFormProps) {
   const { connected, publicKey } = useSolanaWallet()
   const { recordPurchase } = usePositions()
   const { buy, balanceLamports, state, isPending, isConfigured, reset } =
@@ -30,6 +34,7 @@ export default function PredictionForm({ market }: PredictionFormProps) {
   const [amount, setAmount] = useState("0.1")
   const [isReviewOpen, setIsReviewOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState<number | null>(null)
+  const isDark = tone === "dark"
 
   useEffect(() => {
     const updateCurrentTime = () => setCurrentTime(Date.now())
@@ -144,17 +149,35 @@ export default function PredictionForm({ market }: PredictionFormProps) {
 
   return (
     <section
-      className="mt-6 rounded-2xl border border-neutral-300 bg-white p-4 sm:p-5"
+      className={`mt-5 rounded-2xl border p-4 sm:p-5 ${
+        isDark
+          ? "border-white/10 bg-white/[0.035] text-white"
+          : "border-neutral-300 bg-white"
+      }`}
       aria-labelledby="position-heading"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="eyebrow">Take a position</p>
+          <p
+            className={
+              isDark
+                ? "font-mono text-[8px] uppercase tracking-[0.15em] text-white/30"
+                : "eyebrow"
+            }
+          >
+            Take a position
+          </p>
           <h3 id="position-heading" className="mt-1 text-lg font-semibold">
             Trade with Devnet SOL
           </h3>
         </div>
-        <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-neutral-500">
+        <span
+          className={`rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider ${
+            isDark
+              ? "border border-white/10 bg-white/[0.05] text-white/35"
+              : "bg-neutral-100 text-neutral-500"
+          }`}
+        >
           Pooled MVP
         </span>
       </div>
@@ -181,9 +204,15 @@ export default function PredictionForm({ market }: PredictionFormProps) {
               className={`rounded-xl border p-3 text-left transition ${
                 selected
                   ? outcome === "yes"
-                    ? "border-ink bg-ink text-white"
-                    : "border-ink bg-neutral-100 text-ink"
-                  : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-400"
+                    ? isDark
+                      ? "border-emerald-300/50 bg-emerald-300/15 text-emerald-100 shadow-[inset_0_0_0_1px_rgba(110,231,183,0.1)]"
+                      : "border-ink bg-ink text-white"
+                    : isDark
+                      ? "border-rose-300/50 bg-rose-300/15 text-rose-100 shadow-[inset_0_0_0_1px_rgba(253,164,175,0.1)]"
+                      : "border-ink bg-neutral-100 text-ink"
+                  : isDark
+                    ? "border-white/10 bg-black/20 text-white/40 hover:border-white/25 hover:bg-white/[0.06] hover:text-white/70"
+                    : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-400"
               }`}
             >
               <span className="block text-[9px] font-bold uppercase tracking-wider">
@@ -204,11 +233,17 @@ export default function PredictionForm({ market }: PredictionFormProps) {
         <div className="flex items-end justify-between gap-4">
           <label
             htmlFor={`amount-${market.id}`}
-            className="text-[10px] font-bold uppercase tracking-wider text-neutral-500"
+            className={`text-[10px] font-bold uppercase tracking-wider ${
+              isDark ? "text-white/35" : "text-neutral-500"
+            }`}
           >
             Amount
           </label>
-          <span className="tabular text-[10px] text-neutral-500">
+          <span
+            className={`tabular text-[10px] ${
+              isDark ? "text-white/35" : "text-neutral-500"
+            }`}
+          >
             Balance:{" "}
             {balanceSol === null
               ? connected
@@ -230,9 +265,17 @@ export default function PredictionForm({ market }: PredictionFormProps) {
               reset()
             }}
             aria-describedby={`amount-error-${market.id}`}
-            className="tabular h-12 w-full rounded-xl border border-neutral-300 bg-white px-3 pr-14 text-lg font-semibold outline-none transition focus:border-ink focus:ring-1 focus:ring-ink"
+            className={`tabular h-12 w-full rounded-xl border px-3 pr-14 text-lg font-semibold outline-none transition ${
+              isDark
+                ? "border-white/15 bg-black/30 text-white focus:border-white/40 focus:ring-1 focus:ring-white/20"
+                : "border-neutral-300 bg-white focus:border-ink focus:ring-1 focus:ring-ink"
+            }`}
           />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-500">
+          <span
+            className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold ${
+              isDark ? "text-white/35" : "text-neutral-500"
+            }`}
+          >
             SOL
           </span>
         </div>
@@ -246,7 +289,11 @@ export default function PredictionForm({ market }: PredictionFormProps) {
                 setAmount(String(quickAmount))
                 reset()
               }}
-              className="rounded-lg border border-neutral-200 py-1.5 text-[10px] font-semibold transition hover:border-ink hover:bg-neutral-50"
+              className={`rounded-lg border py-1.5 text-[10px] font-semibold transition ${
+                isDark
+                  ? "border-white/10 bg-white/[0.025] text-white/45 hover:border-white/25 hover:bg-white/[0.07] hover:text-white"
+                  : "border-neutral-200 hover:border-ink hover:bg-neutral-50"
+              }`}
             >
               {quickAmount}
             </button>
@@ -254,33 +301,47 @@ export default function PredictionForm({ market }: PredictionFormProps) {
         </div>
       </div>
 
-      <dl className="mt-4 space-y-2 rounded-xl bg-neutral-100 p-3 text-[10px]">
+      <dl
+        className={`mt-4 space-y-2 rounded-xl p-3 text-[10px] ${
+          isDark ? "border border-white/10 bg-black/20" : "bg-neutral-100"
+        }`}
+      >
         <div className="flex justify-between gap-3">
-          <dt className="text-neutral-500">Estimated position units</dt>
+          <dt className={isDark ? "text-white/35" : "text-neutral-500"}>
+            Estimated position units
+          </dt>
           <dd className="tabular font-semibold">
             {quote.positionUnits.toFixed(4)} {side.toUpperCase()}
           </dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt className="text-neutral-500">Average execution probability</dt>
+          <dt className={isDark ? "text-white/35" : "text-neutral-500"}>
+            Average execution probability
+          </dt>
           <dd className="tabular font-semibold">
             {formatProbability(quote.averageExecutionPrice)}
           </dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt className="text-neutral-500">Potential payout if correct</dt>
+          <dt className={isDark ? "text-white/35" : "text-neutral-500"}>
+            Potential payout if correct
+          </dt>
           <dd className="tabular font-semibold">
             {formatSol(quote.estimatedPayout, 4)}
           </dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt className="text-neutral-500">Estimated price impact</dt>
+          <dt className={isDark ? "text-white/35" : "text-neutral-500"}>
+            Estimated price impact
+          </dt>
           <dd className="tabular font-semibold">
             +{quote.priceImpact.toFixed(2)} pts
           </dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt className="text-neutral-500">Estimated Solana fee</dt>
+          <dt className={isDark ? "text-white/35" : "text-neutral-500"}>
+            Estimated Solana fee
+          </dt>
           <dd className="tabular font-semibold">
             ≈ {formatSol((state.feeLamports ?? 5000) / 1_000_000_000, 6)}
           </dd>
@@ -289,7 +350,11 @@ export default function PredictionForm({ market }: PredictionFormProps) {
 
       {quote.priceImpact >= 5 && amountSol > 0 && (
         <p
-          className="mt-3 rounded-lg border border-ink bg-neutral-100 px-3 py-2 text-[10px] font-semibold"
+          className={`mt-3 rounded-lg border px-3 py-2 text-[10px] font-semibold ${
+            isDark
+              ? "border-amber-300/30 bg-amber-300/10 text-amber-100"
+              : "border-ink bg-neutral-100"
+          }`}
           role="alert"
         >
           High price impact: this deposit materially changes the sample pool
@@ -300,7 +365,9 @@ export default function PredictionForm({ market }: PredictionFormProps) {
       {validationError && (
         <p
           id={`amount-error-${market.id}`}
-          className="mt-3 text-[10px] font-medium text-neutral-600"
+          className={`mt-3 text-[10px] font-medium ${
+            isDark ? "text-white/45" : "text-neutral-600"
+          }`}
           role="status"
         >
           {validationError}
@@ -315,12 +382,20 @@ export default function PredictionForm({ market }: PredictionFormProps) {
           reset()
           setIsReviewOpen(true)
         }}
-        className="mt-4 h-11 w-full rounded-full bg-ink px-4 text-xs font-bold text-white transition hover:bg-neutral-800 disabled:bg-neutral-300 disabled:text-neutral-500"
+        className={`mt-4 h-11 w-full rounded-full px-4 text-xs font-bold transition ${
+          isDark
+            ? "bg-white text-black hover:bg-emerald-100 disabled:bg-white/10 disabled:text-white/25"
+            : "bg-ink text-white hover:bg-neutral-800 disabled:bg-neutral-300 disabled:text-neutral-500"
+        }`}
       >
         Review {side.toUpperCase()} position
       </button>
 
-      <p className="mt-3 text-center text-[9px] leading-4 text-neutral-500">
+      <p
+        className={`mt-3 text-center text-[9px] leading-4 ${
+          isDark ? "text-white/25" : "text-neutral-500"
+        }`}
+      >
         Your wallet will show the exact Devnet instruction. Never approve a
         transaction you do not understand.
       </p>

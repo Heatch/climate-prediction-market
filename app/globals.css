@@ -19,19 +19,19 @@
 }
 
 html {
+  height: 100%;
+  overflow: hidden;
   scroll-behavior: smooth;
-  background: var(--paper);
+  background: #030605;
+  color-scheme: dark;
 }
 
 body {
-  min-height: 100vh;
+  height: 100%;
+  min-height: 100%;
   margin: 0;
-  overflow-x: hidden;
-  background:
-    linear-gradient(rgba(17, 17, 17, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(17, 17, 17, 0.025) 1px, transparent 1px),
-    var(--paper);
-  background-size: 32px 32px;
+  overflow: hidden;
+  background: #030605;
   color: var(--ink);
   font-family:
     Inter,
@@ -74,7 +74,7 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid #111111;
+  outline: 2px solid #ffffff;
   outline-offset: 3px;
 }
 
@@ -122,10 +122,10 @@ a {
 .climate-wallet-button {
   min-height: 40px !important;
   height: 40px !important;
-  border: 1px solid #111111 !important;
+  border: 1px solid rgba(255, 255, 255, 0.86) !important;
   border-radius: 999px !important;
-  background: #111111 !important;
-  color: #ffffff !important;
+  background: #ffffff !important;
+  color: #050807 !important;
   font-family: inherit !important;
   font-size: 0.75rem !important;
   font-weight: 700 !important;
@@ -137,7 +137,7 @@ a {
 }
 
 .climate-wallet-button:hover:not([disabled]) {
-  background: #2d2d2b !important;
+  background: #d1fae5 !important;
   transform: translateY(-1px);
 }
 

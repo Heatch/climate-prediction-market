@@ -155,7 +155,11 @@ export function MarketProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const showRegionMarkets = useCallback(() => setSelectedMarket(null), [])
-  const closeDrawer = useCallback(() => setIsDrawerOpen(false), [])
+  const closeDrawer = useCallback(() => {
+    setIsDrawerOpen(false)
+    setSelectedMarket(null)
+    setSelectedRegion(null)
+  }, [])
 
   const value = useMemo<MarketContextValue>(
     () => ({

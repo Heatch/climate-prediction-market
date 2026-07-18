@@ -14,6 +14,11 @@ import {
   closestContinent,
   isContinentName,
 } from "@/lib/geo/regions"
+import {
+  CATEGORY_ACCENTS,
+  CATEGORY_LABELS,
+  CATEGORY_SYMBOLS,
+} from "@/lib/markets/categories"
 import type { ClimateMarket } from "@/lib/markets/types"
 import {
   LIKELIHOOD_GRADIENT,
@@ -176,20 +181,37 @@ export default function ClimateGlobe({
     idleUntilRef.current = performance.now() + IDLE_DELAY_MS
   }, [])
 
-  const focusRegion = useCallback((region: string) => {
-    if (!isContinentName(region)) return
-    const [longitude, latitude] = REGION_CENTERS[region]
-    focusAnimationRef.current = {
-      startedAt: performance.now(),
-      from: [...rotationRef.current],
-      to: [-longitude, -latitude, 0],
-    }
-    idleUntilRef.current = performance.now() + IDLE_DELAY_MS + 900
-  }, [])
+  const focusCoordinates = useCallback(
+    (longitude: number, latitude: number) => {
+      focusAnimationRef.current = {
+        startedAt: performance.now(),
+        from: [...rotationRef.current],
+        to: [-longitude, -latitude, 0],
+      }
+      idleUntilRef.current = performance.now() + IDLE_DELAY_MS + 900
+    },
+    [],
+  )
+
+  const focusRegion = useCallback(
+    (region: string) => {
+      if (!isContinentName(region)) return
+      const [longitude, latitude] = REGION_CENTERS[region]
+      focusCoordinates(longitude, latitude)
+    },
+    [focusCoordinates],
+  )
 
   useEffect(() => {
+    const selectedMarket = markets.find(
+      (market) => market.id === selectedMarketId,
+    )
+    if (selectedMarket) {
+      focusCoordinates(selectedMarket.longitude, selectedMarket.latitude)
+      return
+    }
     if (selectedRegion) focusRegion(selectedRegion)
-  }, [focusRegion, selectedRegion])
+  }, [focusCoordinates, focusRegion, markets, selectedMarketId, selectedRegion])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -212,17 +234,17 @@ export default function ClimateGlobe({
     const resize = () => {
       const rectangle = wrapper.getBoundingClientRect()
       width = Math.max(280, rectangle.width)
-      height = Math.max(
-        360,
-        Math.min(rectangle.width * 0.82, rectangle.height || 680),
-      )
+      height = Math.max(320, rectangle.height || 680)
       const pixelRatio = Math.min(window.devicePixelRatio || 1, 2)
       canvas.width = Math.round(width * pixelRatio)
       canvas.height = Math.round(height * pixelRatio)
       canvas.style.width = `${width}px`
       canvas.style.height = `${height}px`
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
-      baseRadiusRef.current = Math.max(125, Math.min(width, height) * 0.39)
+      baseRadiusRef.current = Math.max(
+        125,
+        Math.min(width * 0.43, height * 0.42),
+      )
       projection
         .translate([width / 2, height / 2])
         .scale(baseRadiusRef.current * zoomRef.current)
@@ -239,20 +261,20 @@ export default function ClimateGlobe({
       context.save()
       context.beginPath()
       context.arc(center[0], center[1], radius, 0, Math.PI * 2)
-      context.fillStyle = "#101010"
-      context.shadowColor = "rgba(0, 0, 0, 0.22)"
-      context.shadowBlur = 34
-      context.shadowOffsetY = 16
+      context.fillStyle = "#070b0a"
+      context.shadowColor = "rgba(16, 185, 129, 0.12)"
+      context.shadowBlur = 54
+      context.shadowOffsetY = 10
       context.fill()
       context.shadowColor = "transparent"
-      context.strokeStyle = "#4a4a47"
+      context.strokeStyle = "rgba(255, 255, 255, 0.24)"
       context.lineWidth = Math.max(0.75, 1.1 * scaleFactor)
       context.stroke()
       context.clip()
 
       context.beginPath()
       path(d3.geoGraticule10())
-      context.strokeStyle = "rgba(255, 255, 255, 0.09)"
+      context.strokeStyle = "rgba(167, 243, 208, 0.07)"
       context.lineWidth = Math.max(0.5, 0.65 * scaleFactor)
       context.stroke()
 
@@ -276,11 +298,13 @@ export default function ClimateGlobe({
 
       context.beginPath()
       path(LAND)
-      context.strokeStyle = "rgba(255, 255, 255, 0.4)"
+      context.fillStyle = "rgba(255, 255, 255, 0.055)"
+      context.fill()
+      context.strokeStyle = "rgba(255, 255, 255, 0.34)"
       context.lineWidth = Math.max(0.45, 0.72 * scaleFactor)
       context.stroke()
 
-      context.fillStyle = "rgba(255, 255, 255, 0.56)"
+      context.fillStyle = "rgba(226, 232, 240, 0.45)"
       const dotRadius = Math.max(0.62, Math.min(1.45, 0.82 * scaleFactor))
       for (const coordinates of LAND_DOTS) {
         if (!isVisible(projection, coordinates)) continue
@@ -375,62 +399,90 @@ export default function ClimateGlobe({
         const selected = cluster.markets.some(
           (market) => market.id === selectedMarketIdRef.current,
         )
+        const markerMarket =
+          cluster.markets.find(
+            (market) => market.id === selectedMarketIdRef.current,
+          ) ?? cluster.markets[0]
+        if (!markerMarket) continue
         const clusterProbability = clampProbability(
           Math.max(...cluster.markets.map((market) => market.yesPrice)),
         )
-        const circleRadius = cluster.markets.length > 1 ? 10 : 7
+        const markerRadius = cluster.markets.length > 1 ? 15 : 14
+        const accent = CATEGORY_ACCENTS[markerMarket.category]
+        const hovered = cluster.markets.some(
+          (market) => market.id === hoveredMarketIdRef.current,
+        )
+
+        // The outer ring carries probability while the central glyph carries
+        // hazard type, so meaning does not depend on colour alone.
         context.beginPath()
         context.arc(
           cluster.x,
           cluster.y,
-          circleRadius + (selected ? 4 : 2),
+          markerRadius + (selected ? 7 : 4),
           0,
           Math.PI * 2,
         )
-        context.fillStyle = selected
-          ? "rgba(255, 255, 255, 0.25)"
-          : "rgba(255, 255, 255, 0.12)"
-        context.fill()
-        context.beginPath()
-        context.arc(cluster.x, cluster.y, circleRadius, 0, Math.PI * 2)
-        context.fillStyle = selected
-          ? "#ffffff"
-          : heatmapEnabledRef.current
-            ? likelihoodColor(clusterProbability)
-            : "#d8d8d2"
-        context.fill()
-        context.strokeStyle = "#111111"
-        context.lineWidth = 2
+        context.strokeStyle = selected
+          ? "rgba(255, 255, 255, 0.95)"
+          : likelihoodColor(clusterProbability)
+        context.lineWidth = selected ? 2.5 : 1.5
         context.stroke()
 
-        const hovered = cluster.markets.some(
-          (market) => market.id === hoveredMarketIdRef.current,
-        )
-        if (hovered) {
+        if (selected || hovered) {
           const pulse = (Math.sin(performance.now() / 260) + 1) / 2
           context.beginPath()
           context.arc(
             cluster.x,
             cluster.y,
-            circleRadius + 6 + pulse * 8,
+            markerRadius + 10 + pulse * 8,
             0,
             Math.PI * 2,
           )
-          context.strokeStyle = `rgba(255, 255, 255, ${0.55 - pulse * 0.4})`
-          context.lineWidth = 2
+          context.strokeStyle = `rgba(255, 255, 255, ${
+            selected ? 0.28 - pulse * 0.16 : 0.42 - pulse * 0.32
+          })`
+          context.lineWidth = 1.5
           context.stroke()
         }
 
+        context.beginPath()
+        context.arc(cluster.x, cluster.y, markerRadius, 0, Math.PI * 2)
+        context.fillStyle = selected ? "#f8fafc" : "rgba(3, 8, 7, 0.94)"
+        context.shadowColor = selected ? "rgba(255,255,255,0.32)" : accent
+        context.shadowBlur = selected ? 18 : 10
+        context.fill()
+        context.shadowColor = "transparent"
+        context.strokeStyle = selected ? "#ffffff" : accent
+        context.lineWidth = selected ? 2 : 1.25
+        context.stroke()
+
+        context.font =
+          "13px Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif"
+        context.textAlign = "center"
+        context.textBaseline = "middle"
+        context.fillStyle = selected ? "#050807" : "#ffffff"
+        context.fillText(
+          CATEGORY_SYMBOLS[markerMarket.category],
+          cluster.x,
+          cluster.y + 0.5,
+        )
+
         if (cluster.markets.length > 1) {
-          context.fillStyle = "#111111"
-          context.font = "700 9px Inter, system-ui, sans-serif"
+          const badgeX = cluster.x + markerRadius - 1
+          const badgeY = cluster.y - markerRadius + 1
+          context.beginPath()
+          context.arc(badgeX, badgeY, 7, 0, Math.PI * 2)
+          context.fillStyle = "#ffffff"
+          context.fill()
+          context.strokeStyle = "#050807"
+          context.lineWidth = 1.5
+          context.stroke()
+          context.fillStyle = "#050807"
+          context.font = "700 8px Inter, system-ui, sans-serif"
           context.textAlign = "center"
           context.textBaseline = "middle"
-          context.fillText(
-            String(cluster.markets.length),
-            cluster.x,
-            cluster.y + 0.5,
-          )
+          context.fillText(String(cluster.markets.length), badgeX, badgeY + 0.5)
         }
       }
       context.restore()
@@ -488,7 +540,7 @@ export default function ClimateGlobe({
     const x = clientX - rectangle.left
     const y = clientY - rectangle.top
     const cluster = clustersRef.current.find(
-      (item) => Math.hypot(item.x - x, item.y - y) <= 17,
+      (item) => Math.hypot(item.x - x, item.y - y) <= 24,
     )
     if (cluster) return { type: "cluster" as const, cluster }
     const coordinates = projection.invert?.([x, y])
@@ -527,9 +579,9 @@ export default function ClimateGlobe({
         const singleMarket = target.cluster.markets[0]
         setHoverLabel(
           target.cluster.markets.length > 1
-            ? `${target.cluster.markets.length} demo markets`
+            ? `${target.cluster.markets.length} nearby hazard markets · select to explore`
             : singleMarket
-              ? `${singleMarket.question} · YES ${Math.round(
+              ? `${CATEGORY_SYMBOLS[singleMarket.category]} ${CATEGORY_LABELS[singleMarket.category]} · ${singleMarket.region} · YES ${Math.round(
                   clampProbability(singleMarket.yesPrice) * 100,
                 )}%`
               : null,
@@ -665,34 +717,18 @@ export default function ClimateGlobe({
 
   return (
     <section
-      className={`relative flex flex-col overflow-hidden bg-[#101010] text-white ${
+      className={`relative flex flex-col overflow-hidden bg-transparent text-white ${
         fullBleed
           ? "h-full min-h-0"
-          : "min-h-[430px] rounded-[1.75rem] border border-neutral-800 shadow-panel"
+          : "min-h-[430px] rounded-[1.75rem] border border-neutral-800 bg-[#070b0a] shadow-panel"
       } ${className}`}
       aria-labelledby="globe-heading"
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between p-5 sm:p-6">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-400">
-            Live atlas
-          </p>
-          <h2
-            id="globe-heading"
-            className="mt-1 text-lg font-semibold tracking-tight text-white"
-          >
-            Climate risk, mapped
-          </h2>
-        </div>
-        <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-300 backdrop-blur">
-          Sample markets
-        </span>
-      </div>
+      <h2 id="globe-heading" className="sr-only">
+        Interactive global climate market map
+      </h2>
 
-      <div
-        ref={wrapperRef}
-        className="relative min-h-[360px] flex-1 touch-none"
-      >
+      <div ref={wrapperRef} className="relative min-h-0 flex-1 touch-none">
         {!isReady && (
           <div
             className="absolute inset-0 z-10 grid place-items-center"
@@ -718,29 +754,29 @@ export default function ClimateGlobe({
           onWheel={handleWheel}
         />
         {hoverLabel && (
-          <div className="pointer-events-none absolute bottom-24 left-1/2 z-20 max-w-[80%] -translate-x-1/2 rounded-full border border-white/15 bg-black/80 px-3 py-1.5 text-center text-[11px] font-medium text-white backdrop-blur">
+          <div className="pointer-events-none absolute bottom-28 left-1/2 z-20 max-w-[82%] -translate-x-1/2 rounded-full border border-white/15 bg-black/85 px-3 py-1.5 text-center font-mono text-[9px] uppercase tracking-[0.08em] text-white/80 backdrop-blur-xl">
             {hoverLabel}
           </div>
         )}
         {heatmapEnabled && (
-          <div className="pointer-events-none absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-full border border-white/15 bg-black/70 px-3 py-1.5 backdrop-blur">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">
-              Less likely
+          <div className="pointer-events-none absolute bottom-24 right-4 z-20 hidden items-center gap-2 rounded-full border border-white/10 bg-black/60 px-3 py-1.5 backdrop-blur lg:flex">
+            <span className="font-mono text-[8px] uppercase tracking-wider text-white/35">
+              Lower
             </span>
             <span
               aria-hidden="true"
-              className="h-1.5 w-16 rounded-full"
+              className="h-1 w-14 rounded-full"
               style={{ backgroundImage: LIKELIHOOD_GRADIENT }}
             />
-            <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">
-              More likely
+            <span className="font-mono text-[8px] uppercase tracking-wider text-white/35">
+              Higher likelihood
             </span>
           </div>
         )}
       </div>
 
-      <div className="relative z-10 border-t border-white/10 bg-black/30 px-4 py-3 backdrop-blur-md sm:px-5">
-        <div className="flex items-center gap-2">
+      <div className="pointer-events-none absolute inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 flex justify-center px-3">
+        <div className="pointer-events-auto flex w-full max-w-[560px] items-center gap-1.5 rounded-2xl border border-white/15 bg-black/75 p-1.5 shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-xl sm:rounded-full">
           <label htmlFor="globe-region" className="sr-only">
             Explore markets by region
           </label>
@@ -753,10 +789,10 @@ export default function ClimateGlobe({
               callbacksRef.current.onRegionSelect(event.target.value)
               focusRegion(event.target.value)
             }}
-            className="min-w-0 flex-1 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white outline-none transition hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white"
+            className="min-w-0 flex-1 rounded-xl border border-transparent bg-white/[0.07] px-3 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-white outline-none transition-[border-color,background-color] hover:bg-white/10 focus:border-white/35 focus-visible:ring-2 focus-visible:ring-white sm:rounded-full"
           >
             <option value="" className="text-black">
-              Explore by region
+              Jump to region
             </option>
             {CONTINENTS.map((continent) => (
               <option key={continent} value={continent} className="text-black">
@@ -769,27 +805,23 @@ export default function ClimateGlobe({
             onClick={() => setHeatmapEnabled((value) => !value)}
             aria-pressed={heatmapEnabled}
             aria-label="Toggle likelihood heat map"
-            className={`shrink-0 rounded-full border px-3 py-2 text-[11px] font-bold transition ${
+            className={`shrink-0 rounded-xl border px-3 py-2.5 font-mono text-[9px] uppercase tracking-[0.08em] transition sm:rounded-full ${
               heatmapEnabled
-                ? "border-white/60 bg-white/15 text-white"
-                : "border-white/15 text-white hover:bg-white/10"
+                ? "border-white/35 bg-white text-black"
+                : "border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/10"
             }`}
           >
-            Heat map
+            <span className="hidden sm:inline">Likelihood </span>Glow
           </button>
           <button
             type="button"
             onClick={resetView}
-            className="shrink-0 rounded-full border border-white/15 px-3 py-2 text-[11px] font-bold text-white transition hover:bg-white/10"
+            className="shrink-0 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 font-mono text-[9px] uppercase tracking-[0.08em] text-white/60 transition hover:border-white/25 hover:bg-white/10 hover:text-white sm:rounded-full"
             aria-label="Reset globe view and zoom"
           >
-            Reset view
+            Reset
           </button>
         </div>
-        <p className="mt-2 text-center text-[10px] text-neutral-500">
-          Drag to rotate · Pinch or scroll to zoom · Select a marker to inspect
-          {heatmapEnabled ? " · Warmer markers are likelier events" : ""}
-        </p>
       </div>
     </section>
   )
