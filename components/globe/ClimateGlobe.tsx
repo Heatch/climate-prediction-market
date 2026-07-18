@@ -7,6 +7,7 @@ import { feature } from "topojson-client"
 import type { GeometryObject, Objects, Topology } from "topojson-specification"
 import landTopology from "world-atlas/land-110m.json"
 
+import { useGlobeLink } from "@/components/providers/GlobeLinkProvider"
 import {
   CONTINENTS,
   REGION_CENTERS,
@@ -14,6 +15,11 @@ import {
   isContinentName,
 } from "@/lib/geo/regions"
 import type { ClimateMarket } from "@/lib/markets/types"
+import {
+  LIKELIHOOD_GRADIENT,
+  clampProbability,
+  likelihoodColor,
+} from "@/lib/utils/likelihood"
 
 type Projection = d3.GeoProjection
 
@@ -37,6 +43,7 @@ interface ClimateGlobeProps {
   onRegionSelect: (region: string) => void
   onMarketSelect: (market: ClimateMarket) => void
   className?: string
+  fullBleed?: boolean
 }
 
 const DEFAULT_ROTATION: [number, number, number] = [20, -12, 0]
@@ -108,7 +115,9 @@ export default function ClimateGlobe({
   onRegionSelect,
   onMarketSelect,
   className = "",
+  fullBleed = false,
 }: ClimateGlobeProps) {
+  const { hoveredMarketIdRef } = useGlobeLink()
   const wrapperRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const projectionRef = useRef<Projection | null>(null)
@@ -119,6 +128,7 @@ export default function ClimateGlobe({
   const marketsRef = useRef(markets)
   const selectedRegionRef = useRef(selectedRegion)
   const selectedMarketIdRef = useRef(selectedMarketId)
+  const heatmapEnabledRef = useRef(true)
   const idleUntilRef = useRef(0)
   const focusAnimationRef = useRef<{
     startedAt: number
@@ -131,13 +141,16 @@ export default function ClimateGlobe({
   const callbacksRef = useRef({ onRegionSelect, onMarketSelect })
   const [isReady, setIsReady] = useState(false)
   const [hoverLabel, setHoverLabel] = useState<string | null>(null)
+  const [heatmapEnabled, setHeatmapEnabled] = useState(true)
 
   useEffect(() => {
     marketsRef.current = markets
     selectedRegionRef.current = selectedRegion
     selectedMarketIdRef.current = selectedMarketId
+    heatmapEnabledRef.current = heatmapEnabled
     callbacksRef.current = { onRegionSelect, onMarketSelect }
   }, [
+    heatmapEnabled,
     markets,
     onMarketSelect,
     onRegionSelect,
@@ -278,6 +291,50 @@ export default function ClimateGlobe({
         context.fill()
       }
 
+      if (heatmapEnabledRef.current) {
+        const heatRadiusBase = Math.max(26, 46 * scaleFactor)
+        context.save()
+        context.globalCompositeOperation = "lighter"
+        for (const market of marketsRef.current) {
+          if (market.status !== "open") continue
+          const coordinates: [number, number] = [
+            market.longitude,
+            market.latitude,
+          ]
+          if (!isVisible(projection, coordinates)) continue
+          const point = projection(coordinates)
+          if (!point) continue
+
+          const probability = clampProbability(market.yesPrice)
+          const heatColor = d3.color(likelihoodColor(probability))
+          if (!heatColor) continue
+
+          // More likely events glow larger and brighter.
+          const radius = heatRadiusBase * (0.7 + probability * 0.7)
+          const peakOpacity = 0.3 + probability * 0.4
+          const gradient = context.createRadialGradient(
+            point[0],
+            point[1],
+            0,
+            point[0],
+            point[1],
+            radius,
+          )
+          heatColor.opacity = peakOpacity
+          gradient.addColorStop(0, heatColor.toString())
+          heatColor.opacity = peakOpacity * 0.45
+          gradient.addColorStop(0.55, heatColor.toString())
+          heatColor.opacity = 0
+          gradient.addColorStop(1, heatColor.toString())
+
+          context.beginPath()
+          context.arc(point[0], point[1], radius, 0, Math.PI * 2)
+          context.fillStyle = gradient
+          context.fill()
+        }
+        context.restore()
+      }
+
       const projectedMarkets = marketsRef.current
         .filter((market) => market.status === "open")
         .flatMap((market) => {
@@ -318,6 +375,9 @@ export default function ClimateGlobe({
         const selected = cluster.markets.some(
           (market) => market.id === selectedMarketIdRef.current,
         )
+        const clusterProbability = clampProbability(
+          Math.max(...cluster.markets.map((market) => market.yesPrice)),
+        )
         const circleRadius = cluster.markets.length > 1 ? 10 : 7
         context.beginPath()
         context.arc(
@@ -333,11 +393,34 @@ export default function ClimateGlobe({
         context.fill()
         context.beginPath()
         context.arc(cluster.x, cluster.y, circleRadius, 0, Math.PI * 2)
-        context.fillStyle = selected ? "#ffffff" : "#d8d8d2"
+        context.fillStyle = selected
+          ? "#ffffff"
+          : heatmapEnabledRef.current
+            ? likelihoodColor(clusterProbability)
+            : "#d8d8d2"
         context.fill()
         context.strokeStyle = "#111111"
         context.lineWidth = 2
         context.stroke()
+
+        const hovered = cluster.markets.some(
+          (market) => market.id === hoveredMarketIdRef.current,
+        )
+        if (hovered) {
+          const pulse = (Math.sin(performance.now() / 260) + 1) / 2
+          context.beginPath()
+          context.arc(
+            cluster.x,
+            cluster.y,
+            circleRadius + 6 + pulse * 8,
+            0,
+            Math.PI * 2,
+          )
+          context.strokeStyle = `rgba(255, 255, 255, ${0.55 - pulse * 0.4})`
+          context.lineWidth = 2
+          context.stroke()
+        }
+
         if (cluster.markets.length > 1) {
           context.fillStyle = "#111111"
           context.font = "700 9px Inter, system-ui, sans-serif"
@@ -394,7 +477,8 @@ export default function ClimateGlobe({
       window.cancelAnimationFrame(animationFrame)
       projectionRef.current = null
     }
-  }, [])
+    // hoveredMarketIdRef is a stable ref; listed to satisfy exhaustive-deps.
+  }, [hoveredMarketIdRef])
 
   const findTarget = useCallback((clientX: number, clientY: number) => {
     const canvas = canvasRef.current
@@ -440,10 +524,15 @@ export default function ClimateGlobe({
     if (!pointer) {
       const target = findTarget(event.clientX, event.clientY)
       if (target?.type === "cluster") {
+        const singleMarket = target.cluster.markets[0]
         setHoverLabel(
           target.cluster.markets.length > 1
             ? `${target.cluster.markets.length} demo markets`
-            : (target.cluster.markets[0]?.question ?? null),
+            : singleMarket
+              ? `${singleMarket.question} · YES ${Math.round(
+                  clampProbability(singleMarket.yesPrice) * 100,
+                )}%`
+              : null,
         )
       } else if (target?.type === "region") {
         setHoverLabel(`${target.region} · select region`)
@@ -576,7 +665,11 @@ export default function ClimateGlobe({
 
   return (
     <section
-      className={`relative flex min-h-[430px] flex-col overflow-hidden rounded-[1.75rem] border border-neutral-800 bg-[#101010] text-white shadow-panel ${className}`}
+      className={`relative flex flex-col overflow-hidden bg-[#101010] text-white ${
+        fullBleed
+          ? "h-full min-h-0"
+          : "min-h-[430px] rounded-[1.75rem] border border-neutral-800 shadow-panel"
+      } ${className}`}
       aria-labelledby="globe-heading"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between p-5 sm:p-6">
@@ -629,6 +722,21 @@ export default function ClimateGlobe({
             {hoverLabel}
           </div>
         )}
+        {heatmapEnabled && (
+          <div className="pointer-events-none absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-full border border-white/15 bg-black/70 px-3 py-1.5 backdrop-blur">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">
+              Less likely
+            </span>
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-16 rounded-full"
+              style={{ backgroundImage: LIKELIHOOD_GRADIENT }}
+            />
+            <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">
+              More likely
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="relative z-10 border-t border-white/10 bg-black/30 px-4 py-3 backdrop-blur-md sm:px-5">
@@ -658,6 +766,19 @@ export default function ClimateGlobe({
           </select>
           <button
             type="button"
+            onClick={() => setHeatmapEnabled((value) => !value)}
+            aria-pressed={heatmapEnabled}
+            aria-label="Toggle likelihood heat map"
+            className={`shrink-0 rounded-full border px-3 py-2 text-[11px] font-bold transition ${
+              heatmapEnabled
+                ? "border-white/60 bg-white/15 text-white"
+                : "border-white/15 text-white hover:bg-white/10"
+            }`}
+          >
+            Heat map
+          </button>
+          <button
+            type="button"
             onClick={resetView}
             className="shrink-0 rounded-full border border-white/15 px-3 py-2 text-[11px] font-bold text-white transition hover:bg-white/10"
             aria-label="Reset globe view and zoom"
@@ -667,6 +788,7 @@ export default function ClimateGlobe({
         </div>
         <p className="mt-2 text-center text-[10px] text-neutral-500">
           Drag to rotate · Pinch or scroll to zoom · Select a marker to inspect
+          {heatmapEnabled ? " · Warmer markers are likelier events" : ""}
         </p>
       </div>
     </section>

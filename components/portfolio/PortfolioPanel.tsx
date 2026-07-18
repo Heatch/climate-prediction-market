@@ -18,6 +18,27 @@ export default function PortfolioPanel() {
     (sum, position) => sum + position.estimatedPayoutSol,
     0,
   )
+  const settleablePositions = positions.filter(
+    (position) =>
+      position.status === "claimable" || position.status === "refundable",
+  )
+  const settleableTotal = settleablePositions.reduce(
+    (sum, position) =>
+      sum +
+      (position.status === "claimable"
+        ? position.estimatedPayoutSol
+        : position.amountSol),
+    0,
+  )
+  const awaitingCount = positions.filter(
+    (position) => position.status === "open",
+  ).length
+
+  const reviewSettlement = () => {
+    const target = settleablePositions[0]
+    const market = target && markets.find((item) => item.id === target.marketId)
+    if (market) selectMarket(market)
+  }
 
   return (
     <section className="panel p-5 sm:p-6" aria-labelledby="portfolio-heading">
@@ -76,6 +97,33 @@ export default function PortfolioPanel() {
               </dd>
             </div>
           </dl>
+          {settleablePositions.length > 0 && (
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-ink bg-ink/5 p-3">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">
+                  Ready to settle
+                </p>
+                <p className="tabular mt-0.5 text-sm font-semibold">
+                  {formatSol(settleableTotal, 3)} across{" "}
+                  {settleablePositions.length} position
+                  {settleablePositions.length === 1 ? "" : "s"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={reviewSettlement}
+                className="shrink-0 rounded-full bg-ink px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-neutral-800"
+              >
+                Review &amp; claim
+              </button>
+            </div>
+          )}
+          {awaitingCount > 0 && (
+            <p className="mt-2 text-[10px] text-neutral-500">
+              {awaitingCount} position{awaitingCount === 1 ? "" : "s"} awaiting
+              resolution
+            </p>
+          )}
           <div className="mt-4 divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white px-3.5">
             {positions.slice(0, 5).map((position) => {
               const market = markets.find(

@@ -157,7 +157,7 @@ describe("pooled market calculations", () => {
 
 describe("demo market data and repository", () => {
   it("contains valid, clearly labelled markets across every required geography", () => {
-    expect(demoMarkets).toHaveLength(9)
+    expect(demoMarkets).toHaveLength(24)
     expect(new Set(demoMarkets.map((market) => market.continent))).toEqual(
       new Set([
         "North America",

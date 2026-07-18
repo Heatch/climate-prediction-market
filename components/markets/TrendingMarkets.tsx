@@ -2,9 +2,10 @@
 
 import MarketListItem from "@/components/markets/MarketListItem"
 import { useMarkets } from "@/components/providers/MarketProvider"
+import { MarketCardSkeleton } from "@/components/ui/Skeleton"
 
 export default function TrendingMarkets() {
-  const { visibleMarkets, selectMarket } = useMarkets()
+  const { visibleMarkets, selectMarket, isLoading } = useMarkets()
   const trendingMarkets = [...visibleMarkets]
     .filter((market) => market.status === "open")
     .sort((first, second) => second.trendingScore - first.trendingScore)
@@ -26,7 +27,13 @@ export default function TrendingMarkets() {
           Ranked using fictional demo activity—not an investment recommendation.
         </p>
       </div>
-      {trendingMarkets.length > 0 ? (
+      {isLoading ? (
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <MarketCardSkeleton key={`trending-skeleton-${index}`} />
+          ))}
+        </div>
+      ) : trendingMarkets.length > 0 ? (
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {trendingMarkets.map((market) => (
             <MarketListItem

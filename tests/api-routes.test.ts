@@ -27,11 +27,14 @@ describe("market API routes", () => {
     }
 
     expect(response.status).toBe(200)
-    expect(body.data.total).toBe(1)
-    expect(body.data.markets[0]).toMatchObject({
-      category: "drought",
-      status: "open",
-    })
+    expect(body.data.total).toBe(6)
+    expect(body.data.markets).toHaveLength(6)
+    for (const market of body.data.markets) {
+      expect(market).toMatchObject({
+        category: "drought",
+        status: "open",
+      })
+    }
     expect(body.meta).toMatchObject({
       isDemo: true,
       network: "devnet",

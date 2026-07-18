@@ -1,11 +1,13 @@
 "use client"
 
-import ClimateGlobe from "@/components/globe/ClimateGlobe"
+import GlobeHero from "@/components/globe/GlobeHero"
 import Navbar from "@/components/layout/Navbar"
-import MarketFilters from "@/components/markets/MarketFilters"
+import MarketBoard from "@/components/markets/MarketBoard"
+import MarketControls from "@/components/markets/MarketControls"
 import RegionalMarketDrawer from "@/components/markets/RegionalMarketDrawer"
 import TrendingMarkets from "@/components/markets/TrendingMarkets"
 import PortfolioPanel from "@/components/portfolio/PortfolioPanel"
+import { GlobeLinkProvider } from "@/components/providers/GlobeLinkProvider"
 import {
   MarketProvider,
   useMarkets,
@@ -16,18 +18,8 @@ import { CONTINENTS } from "@/lib/geo/regions"
 import { formatCompact, formatProbability, formatSol } from "@/lib/utils/format"
 
 function DashboardContent() {
-  const {
-    markets,
-    visibleMarkets,
-    selectedRegion,
-    selectedMarket,
-    search,
-    category,
-    setSearch,
-    setCategory,
-    selectRegion,
-    selectMarket,
-  } = useMarkets()
+  const { markets, search, setSearch, selectRegion, selectMarket } =
+    useMarkets()
 
   const openMarkets = markets.filter((market) => market.status === "open")
   const totalPool = openMarkets.reduce(
@@ -46,7 +38,9 @@ function DashboardContent() {
     <div id="top" className="min-h-screen">
       <Navbar search={search} onSearchChange={setSearch} />
 
-      <main className="mx-auto max-w-[1600px] px-4 pb-16 pt-7 sm:px-6 sm:pt-9 lg:px-8">
+      <GlobeHero />
+
+      <main className="mx-auto max-w-[1600px] px-4 pb-16 pt-10 sm:px-6 sm:pt-14 lg:px-8">
         <section
           className="grid items-end gap-6 lg:grid-cols-[minmax(0,1fr)_auto]"
           aria-labelledby="dashboard-title"
@@ -74,136 +68,139 @@ function DashboardContent() {
           </p>
         </section>
 
-        <div className="mt-7 border-y border-neutral-300 py-3">
-          <MarketFilters value={category} onChange={setCategory} />
-        </div>
-
-        <section className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,2.1fr)_minmax(280px,0.9fr)]">
-          <ClimateGlobe
-            markets={visibleMarkets}
-            selectedRegion={selectedRegion}
-            selectedMarketId={selectedMarket?.id}
-            onRegionSelect={selectRegion}
-            onMarketSelect={selectMarket}
-            className="min-h-[520px] sm:min-h-[620px]"
-          />
-
-          <div className="grid content-start gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            <section className="panel p-5" aria-labelledby="pulse-heading">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="eyebrow">Demo network</p>
-                  <h2 id="pulse-heading" className="mt-1 text-lg font-semibold">
-                    Market pulse
-                  </h2>
-                </div>
-                <span className="rounded-full bg-ink px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white">
-                  Devnet
-                </span>
+        <section className="mt-8 grid content-start gap-4 sm:grid-cols-2">
+          <section className="panel p-5" aria-labelledby="pulse-heading">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="eyebrow">Demo network</p>
+                <h2 id="pulse-heading" className="mt-1 text-lg font-semibold">
+                  Market pulse
+                </h2>
               </div>
-              <dl className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-neutral-100 p-3">
-                  <dt className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">
-                    Active
-                  </dt>
-                  <dd className="tabular mt-1 text-2xl font-semibold">
-                    {openMarkets.length}
-                  </dd>
-                </div>
-                <div className="rounded-xl bg-neutral-100 p-3">
-                  <dt className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">
-                    Regions
-                  </dt>
-                  <dd className="tabular mt-1 text-2xl font-semibold">
-                    {CONTINENTS.length}
-                  </dd>
-                </div>
-                <div className="rounded-xl bg-neutral-100 p-3">
-                  <dt className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">
-                    Sample pool
-                  </dt>
-                  <dd className="tabular mt-1 text-sm font-semibold">
-                    {formatSol(totalPool)}
-                  </dd>
-                </div>
-                <div className="rounded-xl bg-neutral-100 p-3">
-                  <dt className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">
-                    Volume
-                  </dt>
-                  <dd className="tabular mt-1 text-sm font-semibold">
-                    {formatCompact(totalVolume)} SOL
-                  </dd>
-                </div>
-              </dl>
-              {featured && (
-                <button
-                  type="button"
-                  onClick={() => selectMarket(featured)}
-                  className="mt-4 w-full rounded-xl border border-neutral-200 bg-white p-3 text-left transition hover:border-ink"
-                >
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">
-                    Highest demo activity
-                  </p>
-                  <p className="mt-1.5 line-clamp-2 text-xs font-semibold leading-4">
-                    {featured.question}
-                  </p>
-                  <p className="mt-2 text-[10px] font-bold">
-                    YES {formatProbability(featured.yesPrice)}{" "}
-                    <span className="float-right font-medium text-neutral-500">
-                      Inspect →
+              <span className="rounded-full bg-ink px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white">
+                Devnet
+              </span>
+            </div>
+            <dl className="mt-5 grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-neutral-100 p-3">
+                <dt className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">
+                  Active
+                </dt>
+                <dd className="tabular mt-1 text-2xl font-semibold">
+                  {openMarkets.length}
+                </dd>
+              </div>
+              <div className="rounded-xl bg-neutral-100 p-3">
+                <dt className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">
+                  Regions
+                </dt>
+                <dd className="tabular mt-1 text-2xl font-semibold">
+                  {CONTINENTS.length}
+                </dd>
+              </div>
+              <div className="rounded-xl bg-neutral-100 p-3">
+                <dt className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">
+                  Sample pool
+                </dt>
+                <dd className="tabular mt-1 text-sm font-semibold">
+                  {formatSol(totalPool)}
+                </dd>
+              </div>
+              <div className="rounded-xl bg-neutral-100 p-3">
+                <dt className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">
+                  Volume
+                </dt>
+                <dd className="tabular mt-1 text-sm font-semibold">
+                  {formatCompact(totalVolume)} SOL
+                </dd>
+              </div>
+            </dl>
+            {featured && (
+              <button
+                type="button"
+                onClick={() => selectMarket(featured)}
+                className="mt-4 w-full rounded-xl border border-neutral-200 bg-white p-3 text-left transition hover:border-ink"
+              >
+                <p className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">
+                  Highest demo activity
+                </p>
+                <p className="mt-1.5 line-clamp-2 text-xs font-semibold leading-4">
+                  {featured.question}
+                </p>
+                <p className="mt-2 text-[10px] font-bold">
+                  YES {formatProbability(featured.yesPrice)}{" "}
+                  <span className="float-right font-medium text-neutral-500">
+                    Inspect →
+                  </span>
+                </p>
+              </button>
+            )}
+          </section>
+
+          <section className="panel p-5" aria-labelledby="regions-heading">
+            <p className="eyebrow">Accessible atlas</p>
+            <h2 id="regions-heading" className="mt-1 text-lg font-semibold">
+              Explore by region
+            </h2>
+            <div className="mt-4 divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white px-3">
+              {CONTINENTS.map((continent) => {
+                const regionMarkets = openMarkets.filter(
+                  (market) => market.continent === continent,
+                )
+                const average =
+                  regionMarkets.length > 0
+                    ? regionMarkets.reduce(
+                        (sum, market) => sum + market.yesPrice,
+                        0,
+                      ) / regionMarkets.length
+                    : 0
+                return (
+                  <button
+                    type="button"
+                    key={continent}
+                    onClick={() => selectRegion(continent)}
+                    className="flex w-full items-center gap-3 py-3 text-left text-xs transition hover:pl-1"
+                  >
+                    <span className="min-w-0 flex-1 font-semibold">
+                      {continent}
                     </span>
-                  </p>
-                </button>
-              )}
-            </section>
-
-            <section className="panel p-5" aria-labelledby="regions-heading">
-              <p className="eyebrow">Accessible atlas</p>
-              <h2 id="regions-heading" className="mt-1 text-lg font-semibold">
-                Explore by region
-              </h2>
-              <div className="mt-4 divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white px-3">
-                {CONTINENTS.map((continent) => {
-                  const regionMarkets = openMarkets.filter(
-                    (market) => market.continent === continent,
-                  )
-                  const average =
-                    regionMarkets.length > 0
-                      ? regionMarkets.reduce(
-                          (sum, market) => sum + market.yesPrice,
-                          0,
-                        ) / regionMarkets.length
-                      : 0
-                  return (
-                    <button
-                      type="button"
-                      key={continent}
-                      onClick={() => selectRegion(continent)}
-                      className="flex w-full items-center gap-3 py-3 text-left text-xs transition hover:pl-1"
-                    >
-                      <span className="min-w-0 flex-1 font-semibold">
-                        {continent}
+                    <span className="text-[10px] text-neutral-500">
+                      {regionMarkets.length} active
+                    </span>
+                    {regionMarkets.length > 0 && (
+                      <span className="tabular w-9 text-right text-[10px] font-bold">
+                        {formatProbability(average)}
                       </span>
-                      <span className="text-[10px] text-neutral-500">
-                        {regionMarkets.length} active
-                      </span>
-                      {regionMarkets.length > 0 && (
-                        <span className="tabular w-9 text-right text-[10px] font-bold">
-                          {formatProbability(average)}
-                        </span>
-                      )}
-                      <span aria-hidden="true">→</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </section>
-          </div>
+                    )}
+                    <span aria-hidden="true">→</span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
         </section>
 
         <div className="mt-12 sm:mt-16">
           <TrendingMarkets />
         </div>
+
+        <section className="mt-12 sm:mt-16" aria-labelledby="board-heading">
+          <div>
+            <p className="eyebrow">Full market board</p>
+            <h2
+              id="board-heading"
+              className="mt-1 text-2xl font-semibold tracking-[-0.03em]"
+            >
+              All climate markets
+            </h2>
+          </div>
+          <div className="mt-4">
+            <MarketControls />
+          </div>
+          <div className="mt-5">
+            <MarketBoard />
+          </div>
+        </section>
 
         <section className="mt-12 grid gap-5 sm:mt-16 lg:grid-cols-[minmax(0,1.2fr)_minmax(340px,0.8fr)]">
           <div className="rounded-[1.5rem] bg-ink p-6 text-white sm:p-8">
@@ -279,7 +276,9 @@ export default function Dashboard() {
     <SolanaProvider>
       <MarketProvider>
         <PositionProvider>
-          <DashboardContent />
+          <GlobeLinkProvider>
+            <DashboardContent />
+          </GlobeLinkProvider>
         </PositionProvider>
       </MarketProvider>
     </SolanaProvider>

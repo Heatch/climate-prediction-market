@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url"
+
 import { defineConfig } from "vitest/config"
 
 export default defineConfig({
@@ -16,7 +18,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": new URL("./", import.meta.url).pathname,
+      // fileURLToPath decodes the file URL so the alias still resolves when the
+      // project path contains spaces (e.g. ".../Climate Market/..."), which a
+      // raw URL .pathname would leave percent-encoded as "%20".
+      "@": fileURLToPath(new URL("./", import.meta.url)),
     },
   },
 })
