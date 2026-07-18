@@ -10,15 +10,11 @@ import TerraFormMark from "@/components/ui/TerraFormMark"
 interface NavbarProps {
   search: string
   onSearchChange: (value: string) => void
-  isMarketDeskOpen: boolean
-  onMarketDeskOpen: () => void
 }
 
 export default function Navbar({
   search,
   onSearchChange,
-  isMarketDeskOpen,
-  onMarketDeskOpen,
 }: NavbarProps) {
   const { showPortfolio } = useMarkets()
   const { connected } = useSolanaWallet()
@@ -98,39 +94,6 @@ export default function Navbar({
               My Positions
             </button>
           )}
-          <button
-            type="button"
-            onClick={onMarketDeskOpen}
-            aria-haspopup="dialog"
-            aria-controls="market-desk-dialog"
-            aria-expanded={isMarketDeskOpen}
-            className="group grid size-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/[0.06] text-white/70 transition hover:border-white/35 hover:bg-white/10 hover:text-white md:flex md:size-auto md:w-full md:justify-start md:gap-2.5 md:px-3 md:py-2.5"
-          >
-            <svg
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.25"
-              aria-hidden="true"
-              className="size-[18px] shrink-0"
-            >
-              <rect x="2.5" y="3" width="15" height="14" rx="2.5" />
-              <path d="M6 7h8M6 10h5M6 13h7" />
-            </svg>
-            <span className="hidden text-[10px] font-bold uppercase tracking-[0.13em] md:inline">
-              Market desk
-            </span>
-            <span
-              className="ml-auto hidden text-white/25 transition group-hover:translate-x-0.5 group-hover:text-white/60 md:inline"
-              aria-hidden="true"
-            >
-              →
-            </span>
-            <span className="sr-only md:hidden">Open market desk</span>
-          </button>
-          <div className="hidden lg:block">
-            <WalletBalance className="block w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-center font-mono text-[9px] text-white/60" />
-          </div>
           <WalletConnectButton className="md:w-full" />
         </div>
       </div>
