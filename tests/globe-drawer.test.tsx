@@ -48,9 +48,7 @@ describe("geographic market workflow", () => {
       screen.queryByRole("button", { name: /likelihood heat map/i }),
     ).not.toBeInTheDocument()
     expect(screen.queryByText(/live simulation/i)).not.toBeInTheDocument()
-    expect(screen.getByRole("img")).toHaveAccessibleName(
-      /transparent globe showing the faint far hemisphere/i,
-    )
+    expect(screen.getByRole("img")).toHaveAccessibleName(/halftone globe/i)
   })
 
   it("filters markets by selected continent and opens an individual market", async () => {

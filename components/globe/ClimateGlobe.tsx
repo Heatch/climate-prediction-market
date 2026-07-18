@@ -5,7 +5,6 @@ import * as d3 from "d3"
 import type { Feature, Geometry } from "geojson"
 import { feature } from "topojson-client"
 import type { GeometryObject, Objects, Topology } from "topojson-specification"
-import countriesTopology from "world-atlas/countries-110m.json"
 import landTopology from "world-atlas/land-110m.json"
 
 import { useGlobeLink } from "@/components/providers/GlobeLinkProvider"
@@ -71,30 +70,24 @@ function makeLandFeature(): Feature<Geometry> {
   return converted as Feature<Geometry>
 }
 
-function makeCountriesFeature(): Feature<Geometry> {
-  const topology = countriesTopology as unknown as Topology<
-    Objects<Record<string, never>>
-  >
-  const geometry = topology.objects.countries as GeometryObject<
-    Record<string, never>
-  >
-  const converted = feature(topology, geometry)
-  if (converted.type === "FeatureCollection") {
-    return {
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "GeometryCollection",
-        geometries: converted.features.map((item) => item.geometry),
-      },
-    }
-  }
-  return converted as Feature<Geometry>
-}
-
 const LAND = makeLandFeature()
-const COUNTRIES = makeCountriesFeature()
 const GRATICULE = d3.geoGraticule10()
+
+function createLandPattern(
+  context: CanvasRenderingContext2D,
+): CanvasPattern | null {
+  if (typeof context.createPattern !== "function") return null
+  const tile = document.createElement("canvas")
+  tile.width = 7
+  tile.height = 7
+  const tileContext = tile.getContext("2d")
+  if (!tileContext) return null
+  tileContext.fillStyle = "rgba(226, 232, 240, 0.52)"
+  tileContext.beginPath()
+  tileContext.arc(1.6, 1.6, 0.85, 0, Math.PI * 2)
+  tileContext.fill()
+  return context.createPattern(tile, "repeat")
+}
 
 function isVisible(projection: Projection, coordinates: [number, number]) {
   const [rotateLongitude, rotateLatitude] = projection.rotate()
@@ -240,12 +233,8 @@ export default function ClimateGlobe({
       "(prefers-reduced-motion: reduce)",
     )
     const projection = d3.geoOrthographic().clipAngle(90).precision(0.65)
-    const backProjection = d3
-      .geoOrthographic()
-      .clipAngle(179.999)
-      .precision(0.8)
     const path = d3.geoPath(projection, context)
-    const backPath = d3.geoPath(backProjection, context)
+    const landPattern = createLandPattern(context)
     projectionRef.current = projection
     let width = 0
     let height = 0
@@ -283,10 +272,6 @@ export default function ClimateGlobe({
         .translate([width / 2, height / 2])
         .scale(baseRadiusRef.current * zoomRef.current)
         .rotate(rotationRef.current)
-      backProjection
-        .translate([width / 2, height / 2])
-        .scale(baseRadiusRef.current * zoomRef.current)
-        .rotate(rotationRef.current)
       renderVersionRef.current += 1
     }
 
@@ -298,36 +283,22 @@ export default function ClimateGlobe({
       context.save()
       context.beginPath()
       context.arc(center[0], center[1], radius, 0, Math.PI * 2)
-      context.fillStyle = "rgba(4, 8, 7, 0.36)"
+      context.fillStyle = "#070b0a"
       context.fill()
       context.strokeStyle = "rgba(255, 255, 255, 0.24)"
       context.lineWidth = Math.max(0.75, 1.1 * scaleFactor)
       context.stroke()
       context.clip()
 
-      // The full 180° projection is drawn first as a quiet wireframe. The
-      // clipped front hemisphere is layered over it below, which makes the
-      // sphere read as transparent without compromising foreground hit tests.
-      context.beginPath()
-      backPath(GRATICULE)
-      context.strokeStyle = "rgba(203, 213, 225, 0.035)"
-      context.lineWidth = Math.max(0.35, 0.5 * scaleFactor)
-      context.stroke()
-
-      context.beginPath()
-      backPath(COUNTRIES)
-      context.strokeStyle = "rgba(226, 232, 240, 0.11)"
-      context.lineWidth = Math.max(0.35, 0.55 * scaleFactor)
-      context.stroke()
-
       context.beginPath()
       path(GRATICULE)
-      context.strokeStyle = "rgba(226, 232, 240, 0.075)"
+      context.strokeStyle = "rgba(167, 243, 208, 0.07)"
       context.lineWidth = Math.max(0.5, 0.65 * scaleFactor)
       context.stroke()
 
       if (
         selectedRegionRef.current &&
+        !selectedMarketIdRef.current &&
         isContinentName(selectedRegionRef.current)
       ) {
         const centerPoint = REGION_CENTERS[selectedRegionRef.current]
@@ -346,16 +317,10 @@ export default function ClimateGlobe({
 
       context.beginPath()
       path(LAND)
-      context.fillStyle = "rgba(255, 255, 255, 0.065)"
+      context.fillStyle = landPattern ?? "rgba(226, 232, 240, 0.42)"
       context.fill()
-      context.strokeStyle = "rgba(255, 255, 255, 0.38)"
+      context.strokeStyle = "rgba(255, 255, 255, 0.34)"
       context.lineWidth = Math.max(0.45, 0.72 * scaleFactor)
-      context.stroke()
-
-      context.beginPath()
-      path(COUNTRIES)
-      context.strokeStyle = "rgba(255, 255, 255, 0.27)"
-      context.lineWidth = Math.max(0.4, 0.6 * scaleFactor)
       context.stroke()
 
       const projectedMarkets = marketsRef.current
@@ -505,9 +470,6 @@ export default function ClimateGlobe({
           (rotationRef.current[0] + elapsed * 0.0032) % 360
       }
       projection
-        .rotate(rotationRef.current)
-        .scale(baseRadiusRef.current * zoomRef.current)
-      backProjection
         .rotate(rotationRef.current)
         .scale(baseRadiusRef.current * zoomRef.current)
 
@@ -768,7 +730,7 @@ export default function ClimateGlobe({
         <canvas
           ref={canvasRef}
           className="block h-full w-full cursor-grab touch-none active:cursor-grabbing"
-          aria-label="Interactive transparent globe showing the faint far hemisphere and demo climate market markers. Drag or use arrow keys to rotate, scroll or use plus and minus keys to zoom."
+          aria-label="Interactive halftone globe with demo climate market markers. Drag or use arrow keys to rotate, scroll or use plus and minus keys to zoom."
           role="img"
           tabIndex={0}
           onKeyDown={handleKeyDown}

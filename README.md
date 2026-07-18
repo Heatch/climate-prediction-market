@@ -28,7 +28,7 @@ solana program show "$NEXT_PUBLIC_PROGRAM_ID" --url devnet
 
 ## Product workflow
 
-1. Rotate, zoom, or keyboard-navigate the transparent globe.
+1. Rotate, zoom, or keyboard-navigate the halftone globe.
 2. Select a market node or use the text-based region selector.
 3. Filter the regional drawer and open a market.
 4. Review its probability history, pools, evidence, resolver, close time, and
