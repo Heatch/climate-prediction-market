@@ -4,10 +4,16 @@ import { vi } from "vitest"
 
 import Navbar from "@/components/layout/Navbar"
 
-vi.mock("@/components/wallet/WalletBalance", () => ({
-  default: ({ className = "" }: { className?: string }) => (
-    <span className={className}>Wallet balance</span>
-  ),
+const controls = vi.hoisted(() => ({
+  showPortfolio: vi.fn(),
+}))
+
+vi.mock("@/components/providers/MarketProvider", () => ({
+  useMarkets: () => ({ showPortfolio: controls.showPortfolio }),
+}))
+
+vi.mock("@/components/providers/SolanaProvider", () => ({
+  useSolanaWallet: () => ({ connected: true }),
 }))
 
 vi.mock("@/components/wallet/WalletConnectButton", () => ({
@@ -21,15 +27,7 @@ vi.mock("@/components/wallet/WalletConnectButton", () => ({
 describe("TerraForm navigation rail", () => {
   it("anchors the new brand in the desktop rail and keeps search interactive", () => {
     const onSearchChange = vi.fn()
-    const onMarketDeskOpen = vi.fn()
-    render(
-      <Navbar
-        search=""
-        onSearchChange={onSearchChange}
-        isMarketDeskOpen={false}
-        onMarketDeskOpen={onMarketDeskOpen}
-      />,
-    )
+    render(<Navbar search="" onSearchChange={onSearchChange} />)
 
     const navigation = screen.getByRole("navigation", {
       name: /primary navigation/i,
@@ -49,11 +47,13 @@ describe("TerraForm navigation rail", () => {
     })
     expect(onSearchChange).toHaveBeenCalledWith("flood")
 
-    const marketDeskButton = within(navigation).getByRole("button", {
-      name: /market desk/i,
+    const positionsButton = within(navigation).getByRole("button", {
+      name: /my positions/i,
     })
-    expect(marketDeskButton).toHaveAttribute("aria-expanded", "false")
-    fireEvent.click(marketDeskButton)
-    expect(onMarketDeskOpen).toHaveBeenCalledOnce()
+    fireEvent.click(positionsButton)
+    expect(controls.showPortfolio).toHaveBeenCalledOnce()
+    expect(
+      within(navigation).queryByRole("button", { name: /market desk/i }),
+    ).not.toBeInTheDocument()
   })
 })

@@ -17,3 +17,5 @@ test-ledger/
 .venv/
 /test.py
 /geminitest.py
+DEPLOY-PLAN.md
+diagnose.mjs

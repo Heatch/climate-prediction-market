@@ -21,7 +21,7 @@ import {
   deriveProtocolConfigPda,
 } from "./pdas"
 
-const programId = new PublicKey("8THvFM9mEZEyzcxgnYU18BS4GNDJqK1Xixkjnuc5yted")
+const programId = new PublicKey("EkcwkAzNUCGRcKCA5WJc7GCtUXooubkm3ktesBWQXPBt")
 const owner = new PublicKey("11111111111111111111111111111112")
 const resolver = new PublicKey("11111111111111111111111111111113")
 const marketId = 7

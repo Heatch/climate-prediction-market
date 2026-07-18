@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import MarketDetails from "@/components/markets/MarketDetails"
 import MarketFilters from "@/components/markets/MarketFilters"
 import MarketListItem from "@/components/markets/MarketListItem"
+import PortfolioPanel from "@/components/portfolio/PortfolioPanel"
 import { useMarkets } from "@/components/providers/MarketProvider"
 import type { MarketCategory } from "@/lib/markets/types"
 
@@ -14,6 +15,7 @@ export default function RegionalMarketDrawer() {
     selectedRegion,
     selectedMarket,
     isDrawerOpen,
+    isPortfolioMode,
     selectMarket,
     showRegionMarkets,
     closeDrawer,
@@ -88,11 +90,15 @@ export default function RegionalMarketDrawer() {
     )
   }, [category, markets, search, selectedRegion])
 
-  if (!isDrawerOpen || !selectedRegion) return null
+  if (!isDrawerOpen) return null
+  if (!isPortfolioMode && !selectedRegion) return null
 
-  const activeCount = markets.filter(
-    (market) => market.continent === selectedRegion && market.status === "open",
-  ).length
+  const activeCount = selectedRegion
+    ? markets.filter(
+        (market) =>
+          market.continent === selectedRegion && market.status === "open",
+      ).length
+    : 0
 
   return (
     <>
@@ -107,9 +113,11 @@ export default function RegionalMarketDrawer() {
         role="dialog"
         aria-modal="true"
         aria-label={
-          selectedMarket
-            ? `Market details: ${selectedMarket.question}`
-            : `${selectedRegion} markets`
+          isPortfolioMode
+            ? "My Positions"
+            : selectedMarket
+              ? `Market details: ${selectedMarket.question}`
+              : `${selectedRegion} markets`
         }
         data-testid="market-drawer"
         className="fixed inset-x-0 bottom-0 z-50 max-h-[88dvh] overflow-hidden rounded-t-[1.75rem] border border-white/15 bg-[#0b0d0f]/95 text-white shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl md:inset-y-4 md:left-auto md:right-4 md:max-h-none md:w-[min(460px,calc(100vw-2rem))] md:rounded-[1.5rem] lg:right-6"
@@ -129,11 +137,16 @@ export default function RegionalMarketDrawer() {
               />
               <div className="min-w-0">
                 <p className="truncate text-xs font-bold">
-                  {selectedMarket ? selectedMarket.region : selectedRegion}
+                  {isPortfolioMode
+                    ? "My Positions"
+                    : selectedMarket
+                      ? selectedMarket.region
+                      : selectedRegion}
                 </p>
                 <p className="mt-0.5 text-[9px] font-bold uppercase tracking-wider text-neutral-400">
-                  {activeCount} active demo market{activeCount === 1 ? "" : "s"}{" "}
-                  · Devnet
+                  {isPortfolioMode
+                    ? "Your Devnet holdings"
+                    : `${activeCount} active demo market${activeCount === 1 ? "" : "s"} · Devnet`}
                 </p>
               </div>
             </div>
@@ -149,7 +162,9 @@ export default function RegionalMarketDrawer() {
           </div>
 
           <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5">
-            {selectedMarket ? (
+            {isPortfolioMode ? (
+              <PortfolioPanel />
+            ) : selectedMarket ? (
               <MarketDetails
                 market={selectedMarket}
                 onBack={showRegionMarkets}

@@ -37,6 +37,7 @@ type MarketContextValue = {
   selectedRegion: string | null
   selectedMarket: ClimateMarket | null
   isDrawerOpen: boolean
+  isPortfolioMode: boolean
   isLoading: boolean
   now: number
   search: string
@@ -50,6 +51,7 @@ type MarketContextValue = {
   selectRegion: (region: string) => void
   selectMarket: (market: ClimateMarket) => void
   showRegionMarkets: () => void
+  showPortfolio: () => void
   closeDrawer: () => void
 }
 
@@ -130,6 +132,7 @@ export function MarketProvider({
     null,
   )
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [isPortfolioMode, setIsPortfolioMode] = useState(false)
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState<MarketCategory | "all">("all")
   const [status, setStatus] = useState<StatusFilter>("all")
@@ -308,11 +311,20 @@ export function MarketProvider({
     setIsDrawerOpen(true)
   }, [])
 
-  const showRegionMarkets = useCallback(() => setSelectedMarket(null), [])
+  const showRegionMarkets = useCallback(() => {
+    setSelectedMarket(null)
+    setIsPortfolioMode(false)
+  }, [])
+  const showPortfolio = useCallback(() => {
+    setSelectedMarket(null)
+    setIsPortfolioMode(true)
+    setIsDrawerOpen(true)
+  }, [])
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false)
     setSelectedMarket(null)
     setSelectedRegion(null)
+    setIsPortfolioMode(false)
   }, [])
 
   const value = useMemo<MarketContextValue>(
@@ -323,6 +335,7 @@ export function MarketProvider({
       selectedRegion,
       selectedMarket,
       isDrawerOpen,
+      isPortfolioMode,
       isLoading,
       now,
       search,
@@ -336,6 +349,7 @@ export function MarketProvider({
       selectRegion,
       selectMarket,
       showRegionMarkets,
+      showPortfolio,
       closeDrawer,
     }),
     [
@@ -343,6 +357,7 @@ export function MarketProvider({
       category,
       closeDrawer,
       isDrawerOpen,
+      isPortfolioMode,
       isLoading,
       markets,
       now,
@@ -352,6 +367,7 @@ export function MarketProvider({
       selectMarket,
       selectRegion,
       showRegionMarkets,
+      showPortfolio,
       sort,
       status,
       visibleMarkets,

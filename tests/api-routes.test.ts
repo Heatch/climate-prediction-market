@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { POST as indexTransaction } from "@/app/api/index-transaction/route"
 import { GET as getMarket } from "@/app/api/markets/[id]/route"
@@ -6,15 +6,110 @@ import { GET as getRegionMarkets } from "@/app/api/markets/region/[continent]/ro
 import { GET as getMarkets } from "@/app/api/markets/route"
 import { GET as getActivity } from "@/app/api/users/[wallet]/activity/route"
 import { GET as getPositions } from "@/app/api/users/[wallet]/positions/route"
-import { DEMO_WALLETS, demoMarkets } from "@/lib/markets/data"
+import {
+  DEMO_WALLETS,
+  demoMarkets,
+  demoUserActivity,
+  demoUserPositions,
+} from "@/lib/markets/data"
+import type { MarketListQuery } from "@/lib/markets/types"
+
+const dbMocks = vi.hoisted(() => ({
+  getActivityByWallet: vi.fn(),
+  getMarketById: vi.fn(),
+  getMarketsByContinent: vi.fn(),
+  getPositionsByWalletForApi: vi.fn(),
+  initDb: vi.fn(),
+  insertPosition: vi.fn(),
+  insertPriceSnapshot: vi.fn(),
+  insertTransaction: vi.fn(),
+  queryMarkets: vi.fn(),
+}))
+
+vi.mock("@/lib/db/init", () => ({ initDb: dbMocks.initDb }))
+
+vi.mock("@/lib/db/repositories/markets", () => ({
+  getMarketById: dbMocks.getMarketById,
+  getMarketsByContinent: dbMocks.getMarketsByContinent,
+  queryMarkets: dbMocks.queryMarkets,
+}))
+
+vi.mock("@/lib/db/repositories/positions", () => ({
+  getPositionsByWalletForApi: dbMocks.getPositionsByWalletForApi,
+  insertPosition: dbMocks.insertPosition,
+}))
+
+vi.mock("@/lib/db/repositories/marketPrices", () => ({
+  insertPriceSnapshot: dbMocks.insertPriceSnapshot,
+}))
+
+vi.mock("@/lib/db/repositories/transactions", () => ({
+  getActivityByWallet: dbMocks.getActivityByWallet,
+  insertTransaction: dbMocks.insertTransaction,
+}))
 
 interface ErrorBody {
   error: { code: string; message: string }
   meta: { isDemo: boolean; network: string; dataLabel: string }
 }
 
+beforeEach(() => {
+  vi.clearAllMocks()
+  dbMocks.initDb.mockResolvedValue(undefined)
+
+  dbMocks.queryMarkets.mockImplementation(async (query: MarketListQuery) => {
+    const matches = demoMarkets.filter(
+      (market) =>
+        (!query.category || market.category === query.category) &&
+        (!query.status || market.status === query.status),
+    )
+    const limit = query.limit ?? 100
+    const offset = query.offset ?? 0
+    return {
+      markets: matches.slice(offset, offset + limit),
+      total: matches.length,
+      limit,
+      offset,
+    }
+  })
+  dbMocks.getMarketById.mockImplementation(async (id: string) =>
+    demoMarkets.find((market) => market.id === id || market.slug === id),
+  )
+  dbMocks.getMarketsByContinent.mockImplementation(
+    async (continent: string, query: Partial<MarketListQuery>) => {
+      const continentName =
+        continent === "north-america" ? "North America" : continent
+      const matches = demoMarkets.filter(
+        (market) =>
+          market.continent === continentName &&
+          (!query.status || market.status === query.status),
+      )
+      const limit = query.limit ?? 100
+      const offset = query.offset ?? 0
+      return {
+        markets: matches.slice(offset, offset + limit),
+        total: matches.length,
+        limit,
+        offset,
+      }
+    },
+  )
+  dbMocks.getPositionsByWalletForApi.mockImplementation(
+    async (wallet: string) =>
+      demoUserPositions.filter((position) => position.wallet === wallet),
+  )
+  dbMocks.getActivityByWallet.mockImplementation(async (wallet: string) =>
+    demoUserActivity.filter((activity) => activity.wallet === wallet),
+  )
+  dbMocks.insertTransaction.mockResolvedValue({
+    _id: { toHexString: () => "mongo-transaction-id" },
+  })
+  dbMocks.insertPosition.mockResolvedValue({})
+  dbMocks.insertPriceSnapshot.mockResolvedValue(undefined)
+})
+
 describe("market API routes", () => {
-  it("lists and filters sample markets with consistent metadata", async () => {
+  it("lists and filters MongoDB-backed markets with consistent metadata", async () => {
     const response = await getMarkets(
       new Request("http://localhost/api/markets?category=drought&status=open"),
     )
@@ -40,6 +135,7 @@ describe("market API routes", () => {
       network: "devnet",
       dataLabel: "SAMPLE DATA",
     })
+    expect(dbMocks.initDb).toHaveBeenCalledOnce()
   })
 
   it("returns structured validation errors", async () => {
@@ -51,6 +147,7 @@ describe("market API routes", () => {
     expect(response.status).toBe(400)
     expect(body.error.code).toBe("VALIDATION_ERROR")
     expect(body.meta.isDemo).toBe(true)
+    expect(dbMocks.queryMarkets).not.toHaveBeenCalled()
   })
 
   it("gets a market by slug and returns a typed not-found response", async () => {
@@ -58,9 +155,9 @@ describe("market API routes", () => {
       params: Promise.resolve({ id: "florida-category-4-hurricane-2026-demo" }),
     })
     const foundBody = (await found.json()) as {
-      data: { market: { id: string } }
+      data: { id: string }
     }
-    expect(foundBody.data.market.id).toBe("demo-fl-hurricane-2026")
+    expect(foundBody.data.id).toBe("demo-fl-hurricane-2026")
 
     const missing = await getMarket(new Request("http://localhost"), {
       params: Promise.resolve({ id: "missing-market" }),
@@ -70,7 +167,7 @@ describe("market API routes", () => {
     expect(missingBody.error.code).toBe("MARKET_NOT_FOUND")
   })
 
-  it("supports slug-based region lookup and status filtering", async () => {
+  it("passes slug-based region and status filters to the repository", async () => {
     const response = await getRegionMarkets(
       new Request(
         "http://localhost/api/markets/region/north-america?status=open",
@@ -79,17 +176,19 @@ describe("market API routes", () => {
     )
     const body = (await response.json()) as {
       data: {
-        continent: string
         markets: Array<{ status: string }>
         total: number
       }
     }
 
     expect(response.status).toBe(200)
-    expect(body.data.continent).toBe("North America")
     expect(body.data.total).toBeGreaterThanOrEqual(2)
     expect(body.data.markets.every((market) => market.status === "open")).toBe(
       true,
+    )
+    expect(dbMocks.getMarketsByContinent).toHaveBeenCalledWith(
+      "north-america",
+      expect.objectContaining({ status: "open" }),
     )
   })
 })
@@ -114,7 +213,7 @@ describe("wallet and transaction API routes", () => {
     expect(invalidBody.error.code).toBe("VALIDATION_ERROR")
   })
 
-  it("rejects malformed JSON when indexing", async () => {
+  it("rejects malformed JSON before writing transaction records", async () => {
     const response = await indexTransaction(
       new Request("http://localhost/api/index-transaction", {
         method: "POST",
@@ -126,9 +225,10 @@ describe("wallet and transaction API routes", () => {
 
     expect(response.status).toBe(400)
     expect(body.error.code).toBe("INVALID_JSON")
+    expect(dbMocks.insertTransaction).not.toHaveBeenCalled()
   })
 
-  it("indexes valid metadata idempotently and exposes it in wallet activity", async () => {
+  it("indexes valid metadata and exposes repository-backed wallet activity", async () => {
     const signature = demoMarkets[8]!.resolution!.transactionSignature!
     const payload = {
       wallet: DEMO_WALLETS.boreal,
@@ -141,38 +241,47 @@ describe("wallet and transaction API routes", () => {
       transactionSignature: signature,
       timestamp: "2026-07-18T03:00:00.000Z",
     }
-    const request = () =>
+    const response = await indexTransaction(
       new Request("http://localhost/api/index-transaction", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      })
-
-    const created = await indexTransaction(request())
-    const createdBody = (await created.json()) as {
-      data: { created: boolean; activity: { explorerUrl: string } }
+      }),
+    )
+    const body = (await response.json()) as {
+      data: { id: string; signature: string }
     }
-    expect(created.status).toBe(201)
-    expect(createdBody.data.created).toBe(true)
-    expect(createdBody.data.activity.explorerUrl).toContain("cluster=devnet")
 
-    const duplicate = await indexTransaction(request())
-    const duplicateBody = (await duplicate.json()) as {
-      data: { created: boolean }
-    }
-    expect(duplicate.status).toBe(200)
-    expect(duplicateBody.data.created).toBe(false)
+    expect(response.status).toBe(200)
+    expect(body.data).toEqual({
+      id: "mongo-transaction-id",
+      signature,
+    })
+    expect(dbMocks.insertTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        walletAddress: DEMO_WALLETS.boreal,
+        type: "purchase_no",
+        amountSol: 0.125,
+      }),
+    )
+    expect(dbMocks.insertPosition).toHaveBeenCalledOnce()
+    expect(dbMocks.insertPriceSnapshot).toHaveBeenCalledOnce()
 
+    dbMocks.getActivityByWallet.mockResolvedValue([
+      {
+        ...demoUserActivity[0],
+        wallet: DEMO_WALLETS.boreal,
+        transactionSignature: signature,
+      },
+    ])
     const activity = await getActivity(new Request("http://localhost"), {
       params: Promise.resolve({ wallet: DEMO_WALLETS.boreal }),
     })
     const activityBody = (await activity.json()) as {
       data: { activity: Array<{ transactionSignature: string }> }
     }
-    expect(
-      activityBody.data.activity.some(
-        (item) => item.transactionSignature === signature,
-      ),
-    ).toBe(true)
+    expect(activityBody.data.activity).toEqual([
+      expect.objectContaining({ transactionSignature: signature }),
+    ])
   })
 })

@@ -25,6 +25,10 @@ vi.mock("@/components/markets/MarketDetails", () => ({
   ),
 }))
 
+vi.mock("@/components/portfolio/PortfolioPanel", () => ({
+  default: () => <div>Portfolio contents</div>,
+}))
+
 describe("geographic market workflow", () => {
   it("opens a region from the globe's accessible selector", async () => {
     const user = userEvent.setup()
@@ -134,5 +138,35 @@ describe("geographic market workflow", () => {
     )
     await user.click(screen.getByRole("button", { name: "Select market" }))
     expect(screen.getByTestId("globe-viewport")).toHaveClass("lg:right-[484px]")
+  })
+
+  it("labels the wallet portfolio drawer independently of a region", async () => {
+    const user = userEvent.setup()
+
+    function Harness() {
+      const { showPortfolio } = useMarkets()
+      return (
+        <>
+          <button type="button" onClick={showPortfolio}>
+            Open positions
+          </button>
+          <RegionalMarketDrawer />
+        </>
+      )
+    }
+
+    render(
+      <MarketProvider>
+        <Harness />
+      </MarketProvider>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "Open positions" }))
+    expect(
+      screen.getByRole("dialog", { name: "My Positions" }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole("dialog", { name: /null markets/i }),
+    ).not.toBeInTheDocument()
   })
 })

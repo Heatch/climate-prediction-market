@@ -1,8 +1,9 @@
 import { apiError, apiSuccess } from "@/app/api/_shared/responses"
-import { getUserActivity } from "@/lib/markets/repository"
+import { initDb } from "@/lib/db/init"
+import { getActivityByWallet } from "@/lib/db/repositories/transactions"
 import {
-  formatZodIssues,
   walletParamSchema,
+  formatZodIssues,
 } from "@/lib/validation/marketSchemas"
 
 interface UserActivityRouteContext {
@@ -13,6 +14,8 @@ export async function GET(
   _request: Request,
   context: UserActivityRouteContext,
 ) {
+  await initDb()
+
   const params = walletParamSchema.safeParse(await context.params)
   if (!params.success) {
     return apiError(
@@ -23,11 +26,10 @@ export async function GET(
     )
   }
 
-  const activity = getUserActivity(params.data.wallet)
+  const activity = await getActivityByWallet(params.data.wallet)
   return apiSuccess({
     wallet: params.data.wallet,
     activity,
     total: activity.length,
-    indexingMode: "ephemeral-demo" as const,
   })
 }

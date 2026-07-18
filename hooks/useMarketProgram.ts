@@ -117,6 +117,12 @@ function ensureMarketCanTrade(market: MarketProgramReference): void {
   }
 }
 
+function summarizeSimulationLogs(logs: readonly string[]): string {
+  if (logs.length === 0) return ""
+  const tail = logs.slice(-3)
+  return ` (last log: ${tail[tail.length - 1] ?? ""})`
+}
+
 function simulationFailure(
   error: unknown,
   logs: readonly string[],
@@ -128,9 +134,61 @@ function simulationFailure(
 
   if (mapped.code !== "unknown") return mapped
 
+  const logTail = summarizeSimulationLogs(logs)
+  const joined = logs.join("\n").toLowerCase()
+
+  if (
+    joined.includes("could not find account") ||
+    joined.includes("account not found") ||
+    joined.includes("0xa")
+  ) {
+    return new MarketProgramClientError(
+      "simulation_failed",
+      `The market accounts have not been deployed to Devnet for this market, or the program ID is incorrect.${logTail}`,
+      { cause: error, logs },
+    )
+  }
+
+  if (
+    joined.includes("incorrectprogramid") ||
+    joined.includes("incorrect program id")
+  ) {
+    return new MarketProgramClientError(
+      "simulation_failed",
+      `The program ID does not match the deployed program on Devnet.${logTail}`,
+      { cause: error, logs },
+    )
+  }
+
+  if (
+    joined.includes("insufficient") ||
+    joined.includes("not enough") ||
+    joined.includes("attempt to debit")
+  ) {
+    return new MarketProgramClientError(
+      "insufficient_balance",
+      `The wallet does not have enough Devnet SOL for this position and its network fee.${logTail}`,
+      { cause: error, logs },
+    )
+  }
+
+  if (
+    joined.includes("custom program error") ||
+    joined.includes("error number")
+  ) {
+    return new MarketProgramClientError(
+      "program_error",
+      `The on-chain program rejected the simulation.${logTail}`,
+      { cause: error, logs },
+    )
+  }
+
+  const logSnippet =
+    logs.length > 0 ? ` Simulation logs: ${logs.slice(-2).join(" | ")}` : ""
+
   return new MarketProgramClientError(
     "simulation_failed",
-    "The Devnet transaction would fail, so it was not sent. Check the market state and try again.",
+    `The Devnet transaction would fail, so it was not sent. Check the market state and try again.${logSnippet}`,
     { cause: error, logs },
   )
 }
@@ -291,6 +349,10 @@ export function useMarketProgram(market: MarketProgramReference) {
         const simulationLogs = simulation.value.logs ?? []
 
         if (simulation.value.err) {
+          setState((current) => ({
+            ...current,
+            simulationLogs,
+          }))
           throw simulationFailure(simulation.value.err, simulationLogs)
         }
 
