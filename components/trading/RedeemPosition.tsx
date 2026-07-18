@@ -10,7 +10,7 @@ import { formatSol } from "@/lib/utils/format"
 
 export default function RedeemPosition({ market }: { market: ClimateMarket }) {
   const { connected } = useSolanaWallet()
-  const { positions, updateMarketSettlement } = usePositions()
+  const { positions, updatePositionStatus } = usePositions()
   const { claim, refund, state, isPending, isConfigured } =
     useMarketProgram(market)
   const marketPositions = useMemo(
@@ -19,18 +19,13 @@ export default function RedeemPosition({ market }: { market: ClimateMarket }) {
   )
   const eligiblePosition = marketPositions.find((position) => {
     if (["claimed", "refunded"].includes(position.status)) return false
-    if (isConfigured && position.source !== "onchain") return false
     if (market.status === "cancelled") {
-      return isConfigured
-        ? position.status === "refundable"
-        : position.status === "refundable" || position.status === "open"
+      return position.status === "refundable" || position.status === "open"
     }
     return (
       market.status === "resolved" &&
       market.outcome === position.side &&
-      (isConfigured
-        ? position.status === "claimable"
-        : position.status === "claimable" || position.status === "open")
+      (position.status === "claimable" || position.status === "open")
     )
   })
 
@@ -46,12 +41,9 @@ export default function RedeemPosition({ market }: { market: ClimateMarket }) {
     if (!eligiblePosition || isPending) return
     try {
       const result = isRefund ? await refund() : await claim()
-      updateMarketSettlement(
-        market.id,
-        isRefund ? "refund" : "claim",
-        market.outcome === "yes" || market.outcome === "no"
-          ? market.outcome
-          : null,
+      updatePositionStatus(
+        eligiblePosition.id,
+        isRefund ? "refunded" : "claimed",
         result.signature,
       )
     } catch {

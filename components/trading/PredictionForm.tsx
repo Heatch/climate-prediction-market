@@ -540,18 +540,40 @@ export default function PredictionForm({
             role="dialog"
             aria-modal="true"
             aria-labelledby="review-heading"
-            className="w-full max-w-md rounded-t-[1.5rem] border border-neutral-300 bg-paper p-5 shadow-panel sm:rounded-[1.5rem]"
+            className={`w-full max-w-md rounded-t-[1.5rem] border p-5 shadow-panel sm:rounded-[1.5rem] ${
+              isDark
+                ? "border-white/10 bg-[#0d0f0e] text-white"
+                : "border-neutral-300 bg-paper"
+            }`}
           >
             {state.status === "success" && state.signature ? (
               <div aria-live="polite" className="text-center">
-                <div className="mx-auto grid size-12 place-items-center rounded-full bg-ink text-xl text-white">
+                <div
+                  className={`mx-auto grid size-12 place-items-center rounded-full text-xl ${
+                    isDark
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "bg-ink text-white"
+                  }`}
+                >
                   ✓
                 </div>
-                <p className="eyebrow mt-4">Confirmed on Devnet</p>
+                <p
+                  className={`mt-4 ${
+                    isDark
+                      ? "font-mono text-[8px] uppercase tracking-[0.15em] text-emerald-300/50"
+                      : "eyebrow"
+                  }`}
+                >
+                  Confirmed on Devnet
+                </p>
                 <h4 id="review-heading" className="mt-1 text-xl font-semibold">
                   Position recorded
                 </h4>
-                <p className="mt-2 text-xs leading-5 text-neutral-500">
+                <p
+                  className={`mt-2 text-xs leading-5 ${
+                    isDark ? "text-white/40" : "text-neutral-500"
+                  }`}
+                >
                   Your browser portfolio was updated after Solana confirmed the
                   transaction.
                 </p>
@@ -562,14 +584,22 @@ export default function PredictionForm({
                   }
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-4 inline-block rounded-full border border-ink px-4 py-2 text-xs font-bold hover:bg-ink hover:text-white"
+                  className={`mt-4 inline-block rounded-full border px-4 py-2 text-xs font-bold ${
+                    isDark
+                      ? "border-white/20 hover:bg-white hover:text-black"
+                      : "border-ink hover:bg-ink hover:text-white"
+                  }`}
                 >
                   View transaction ↗
                 </a>
                 <button
                   type="button"
                   onClick={() => setIsReviewOpen(false)}
-                  className="mt-3 block w-full py-2 text-xs font-semibold text-neutral-500 hover:text-ink"
+                  className={`mt-3 block w-full py-2 text-xs font-semibold ${
+                    isDark
+                      ? "text-white/30 hover:text-white"
+                      : "text-neutral-500 hover:text-ink"
+                  }`}
                 >
                   Done
                 </button>
@@ -578,7 +608,15 @@ export default function PredictionForm({
               <>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="eyebrow">Transaction review</p>
+                    <p
+                      className={
+                        isDark
+                          ? "font-mono text-[8px] uppercase tracking-[0.15em] text-white/30"
+                          : "eyebrow"
+                      }
+                    >
+                      Transaction review
+                    </p>
                     <h4
                       id="review-heading"
                       className="mt-1 text-xl font-semibold"
@@ -590,7 +628,11 @@ export default function PredictionForm({
                     type="button"
                     disabled={isPending}
                     onClick={() => setIsReviewOpen(false)}
-                    className="grid size-8 place-items-center rounded-full border border-neutral-300 hover:border-ink"
+                    className={`grid size-8 place-items-center rounded-full border ${
+                      isDark
+                        ? "border-white/15 hover:border-white/40"
+                        : "border-neutral-300 hover:border-ink"
+                    }`}
                     aria-label="Close transaction review"
                   >
                     ×
@@ -599,50 +641,100 @@ export default function PredictionForm({
                 <p className="mt-3 text-sm font-semibold leading-5">
                   {market.question}
                 </p>
-                <dl className="mt-4 divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white px-3.5 text-xs">
+                <dl
+                  className={`mt-4 divide-y rounded-xl border px-3.5 text-xs ${
+                    isDark
+                      ? "divide-white/10 border-white/10 bg-black/20"
+                      : "divide-neutral-200 border-neutral-200 bg-white"
+                  }`}
+                >
                   <div className="flex justify-between gap-4 py-3">
-                    <dt className="text-neutral-500">You deposit</dt>
+                    <dt className={isDark ? "text-white/35" : "text-neutral-500"}>
+                      You deposit
+                    </dt>
                     <dd className="tabular font-semibold">
                       {formatSol(amountSol, 4)}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-4 py-3">
-                    <dt className="text-neutral-500">Outcome</dt>
+                    <dt className={isDark ? "text-white/35" : "text-neutral-500"}>
+                      Outcome
+                    </dt>
                     <dd className="font-semibold">{side.toUpperCase()}</dd>
                   </div>
                   <div className="flex justify-between gap-4 py-3">
-                    <dt className="text-neutral-500">Estimated payout</dt>
+                    <dt className={isDark ? "text-white/35" : "text-neutral-500"}>
+                      Estimated payout
+                    </dt>
                     <dd className="tabular font-semibold">
                       {formatSol(quote.estimatedPayout, 4)}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-4 py-3">
-                    <dt className="text-neutral-500">Network</dt>
+                    <dt className={isDark ? "text-white/35" : "text-neutral-500"}>
+                      Network
+                    </dt>
                     <dd className="font-semibold">Solana Devnet</dd>
                   </div>
                 </dl>
 
                 {state.status === "error" && state.error && (
                   <div
-                    className="mt-3 rounded-xl border border-neutral-400 bg-neutral-100 p-3 text-xs leading-5"
+                    className={`mt-3 rounded-xl border p-3 text-xs leading-5 ${
+                      isDark
+                        ? "border-rose-300/30 bg-rose-300/10"
+                        : "border-neutral-400 bg-neutral-100"
+                    }`}
                     role="alert"
                     aria-live="assertive"
                   >
                     <p className="font-bold">Transaction failed</p>
-                    <p className="mt-1 text-neutral-600">
+                    <p
+                      className={`mt-1 ${
+                        isDark ? "text-rose-200/80" : "text-neutral-600"
+                      }`}
+                    >
                       {state.error.message}
                     </p>
+                    {(() => {
+                      const logs =
+                        state.simulationLogs.length > 0
+                          ? state.simulationLogs
+                          : state.error?.logs ?? []
+                      return logs.length > 0 ? (
+                        <details className="mt-2">
+                          <summary
+                            className={`cursor-pointer select-none ${
+                              isDark ? "text-white/30" : "text-neutral-500"
+                            }`}
+                          >
+                            Simulation logs
+                          </summary>
+                          <pre
+                            className={`mt-1 max-h-28 overflow-auto whitespace-pre-wrap break-all text-[9px] leading-4 ${
+                              isDark ? "text-white/25" : "text-neutral-500"
+                            }`}
+                          >
+                            {logs.join("\n")}
+                          </pre>
+                        </details>
+                      ) : null
+                    })()}
                   </div>
                 )}
 
                 {isPending && (
                   <div
-                    className="mt-4 flex items-center gap-3 rounded-xl bg-neutral-100 p-3 text-xs font-semibold"
+                    className={`mt-4 flex items-center gap-3 rounded-xl p-3 text-xs font-semibold ${
+                      isDark ? "bg-white/5" : "bg-neutral-100"
+                    }`}
                     role="status"
                     aria-live="polite"
                   >
                     <span
-                      className="soft-pulse size-2 rounded-full bg-ink"
+                      className={`soft-pulse size-2 rounded-full ${
+                        isDark ? "bg-white/40" : "bg-ink"
+                      }`}
                       aria-hidden="true"
                     />
                     {loadingLabel[state.status] ?? "Processing transaction…"}
@@ -654,7 +746,11 @@ export default function PredictionForm({
                   data-testid="confirm-transaction"
                   onClick={() => void submit()}
                   disabled={isPending || Boolean(validationError)}
-                  className="mt-4 h-11 w-full rounded-full bg-ink px-4 text-xs font-bold text-white hover:bg-neutral-800 disabled:bg-neutral-300 disabled:text-neutral-500"
+                  className={`mt-4 h-11 w-full rounded-full px-4 text-xs font-bold transition ${
+                    isDark
+                      ? "bg-white text-black hover:bg-emerald-100 disabled:bg-white/10 disabled:text-white/25"
+                      : "bg-ink text-white hover:bg-neutral-800 disabled:bg-neutral-300 disabled:text-neutral-500"
+                  }`}
                 >
                   {isPending
                     ? (loadingLabel[state.status] ?? "Processing…")
@@ -662,7 +758,11 @@ export default function PredictionForm({
                       ? "Try again"
                       : "Confirm in wallet"}
                 </button>
-                <p className="mt-3 text-center text-[9px] text-neutral-500">
+                <p
+                  className={`mt-3 text-center text-[9px] ${
+                    isDark ? "text-white/25" : "text-neutral-500"
+                  }`}
+                >
                   Experimental prototype · Devnet SOL has no intended monetary
                   value
                 </p>

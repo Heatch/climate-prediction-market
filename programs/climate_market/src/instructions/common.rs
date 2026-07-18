@@ -65,14 +65,14 @@ pub fn deposit_native_sol<'info>(
         to: vault.to_account_info(),
     };
     system_program::transfer(
-        CpiContext::new(system_program.to_account_info(), transfer_accounts),
+        CpiContext::new(
+            system_program.key(),
+            transfer_accounts,
+        ),
         amount,
     )
 }
 
-/// Moves deposited SOL out of the program-owned vault while preserving the
-/// vault account's rent-exempt reserve. Only protocol deposits, tracked by the
-/// market account, are ever used to determine `amount`.
 pub fn withdraw_native_sol<'info>(
     vault: &Account<'info, MarketVault>,
     recipient: &Signer<'info>,
@@ -132,4 +132,3 @@ pub fn checked_pool_add(market: &mut Account<Market>, yes: u64, no: u64) -> Resu
     );
     Ok(())
 }
-

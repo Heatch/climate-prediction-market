@@ -1,5 +1,7 @@
 "use client"
 
+import { useMarkets } from "@/components/providers/MarketProvider"
+import { useSolanaWallet } from "@/components/providers/SolanaProvider"
 import WalletBalance from "@/components/wallet/WalletBalance"
 import WalletConnectButton from "@/components/wallet/WalletConnectButton"
 import { SOLANA_CONFIG_WARNING, SOLANA_PROGRAM_ID } from "@/lib/solana/config"
@@ -18,6 +20,8 @@ export default function Navbar({
   isMarketDeskOpen,
   onMarketDeskOpen,
 }: NavbarProps) {
+  const { showPortfolio } = useMarkets()
+  const { connected } = useSolanaWallet()
   return (
     <nav
       aria-label="Primary navigation"
@@ -85,6 +89,15 @@ export default function Navbar({
             />
             Devnet · {SOLANA_PROGRAM_ID ? "Program configured" : "Demo only"}
           </div>
+          {connected && (
+            <button
+              type="button"
+              onClick={showPortfolio}
+              className="rounded-full border border-white/20 bg-white/[0.08] px-4 py-2 text-xs font-semibold text-white transition hover:border-white/40 hover:bg-white/15 md:w-full"
+            >
+              My Positions
+            </button>
+          )}
           <button
             type="button"
             onClick={onMarketDeskOpen}
