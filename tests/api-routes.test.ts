@@ -6,11 +6,17 @@ import { GET as getRegionMarkets } from "@/app/api/markets/region/[continent]/ro
 import { GET as getMarkets } from "@/app/api/markets/route"
 import { GET as getActivity } from "@/app/api/users/[wallet]/activity/route"
 import { GET as getPositions } from "@/app/api/users/[wallet]/positions/route"
-import { DEMO_WALLETS, demoMarkets } from "@/lib/markets/data"
+
+const TEST_WALLETS = {
+  atlas: "Udf5rTTTfiQGstoHtf6TsUfo9zHjN2zjo9kF49vebzH",
+  boreal: "2HfCoU3aZFH7wxttXUa7xNjpj49P6KdMwwFvx6MpcRos",
+}
+
+const DEMO_RESOLUTION_SIGNATURE = "aqcDTRNkJKwcprcwLbCSkXWyUKBXGmYA63iJrEwksaXg5zte76RQ6b2HEXNJp4QQ1tpqWVXaYGtYu2F9mjDuTRM"
 
 interface ErrorBody {
   error: { code: string; message: string }
-  meta: { isDemo: boolean; network: string; dataLabel: string }
+  meta: { network: string }
 }
 
 describe("market API routes", () => {
@@ -23,7 +29,7 @@ describe("market API routes", () => {
         markets: Array<{ category: string; status: string }>
         total: number
       }
-      meta: { isDemo: boolean; network: string; dataLabel: string }
+      meta: { network: string }
     }
 
     expect(response.status).toBe(200)
@@ -36,9 +42,7 @@ describe("market API routes", () => {
       })
     }
     expect(body.meta).toMatchObject({
-      isDemo: true,
       network: "devnet",
-      dataLabel: "SAMPLE DATA",
     })
   })
 
@@ -50,7 +54,7 @@ describe("market API routes", () => {
 
     expect(response.status).toBe(400)
     expect(body.error.code).toBe("VALIDATION_ERROR")
-    expect(body.meta.isDemo).toBe(true)
+    expect(body.meta.network).toBe("devnet")
   })
 
   it("gets a market by slug and returns a typed not-found response", async () => {
@@ -97,7 +101,7 @@ describe("market API routes", () => {
 describe("wallet and transaction API routes", () => {
   it("returns positions for a valid wallet and rejects malformed keys", async () => {
     const response = await getPositions(new Request("http://localhost"), {
-      params: Promise.resolve({ wallet: DEMO_WALLETS.atlas }),
+      params: Promise.resolve({ wallet: TEST_WALLETS.atlas }),
     })
     const body = (await response.json()) as {
       data: { positions: unknown[]; total: number }
@@ -129,9 +133,9 @@ describe("wallet and transaction API routes", () => {
   })
 
   it("indexes valid metadata idempotently and exposes it in wallet activity", async () => {
-    const signature = demoMarkets[8]!.resolution!.transactionSignature!
+    const signature = DEMO_RESOLUTION_SIGNATURE
     const payload = {
-      wallet: DEMO_WALLETS.boreal,
+      wallet: TEST_WALLETS.boreal,
       marketId: "demo-fl-hurricane-2026",
       onchainMarketId: 1001,
       type: "purchase_no",
@@ -164,7 +168,7 @@ describe("wallet and transaction API routes", () => {
     expect(duplicateBody.data.created).toBe(false)
 
     const activity = await getActivity(new Request("http://localhost"), {
-      params: Promise.resolve({ wallet: DEMO_WALLETS.boreal }),
+      params: Promise.resolve({ wallet: TEST_WALLETS.boreal }),
     })
     const activityBody = (await activity.json()) as {
       data: { activity: Array<{ transactionSignature: string }> }

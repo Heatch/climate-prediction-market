@@ -36,7 +36,6 @@ export default function MarketDetails({ market, onBack }: MarketDetailsProps) {
     return (currentProbability - first) * 100
   }, [currentProbability, market.history])
   const totalLiquidity = market.yesLiquidity + market.noLiquidity
-  const displayQuestion = market.question.replace(/^\[DEMO\]\s*/i, "")
   return (
     <article aria-labelledby="market-question" className="pb-8 text-white">
       <div className="flex items-center justify-between gap-3">
@@ -80,7 +79,7 @@ export default function MarketDetails({ market, onBack }: MarketDetailsProps) {
         id="market-question"
         className="mt-4 text-[1.55rem] font-medium leading-[1.12] tracking-[-0.04em] text-white sm:text-[1.75rem]"
       >
-        {displayQuestion}
+        {market.question}
       </h2>
       <p className="mt-3 text-[11px] leading-5 text-white/55">
         {market.description}
@@ -271,11 +270,6 @@ export default function MarketDetails({ market, onBack }: MarketDetailsProps) {
           </div>
         </details>
       </div>
-
-      <p className="mt-5 border-t border-white/10 pt-4 text-[9px] leading-4 text-white/25">
-        Fictional Devnet demonstration data. Probabilities reflect each side’s
-        simulated share of a pooled binary market and are not climate forecasts.
-      </p>
     </article>
   )
 }
