@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "TerraForm — Global climate signal markets",
+  title: "Clyma — Global climate signal markets",
   description:
     "An experimental Solana Devnet prototype for exploring and trading pooled climate prediction markets.",
 }

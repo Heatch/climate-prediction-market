@@ -1,6 +1,6 @@
 import type { SVGProps } from "react"
 
-export default function TerraFormMark({
+export default function ClymaMark({
   className = "",
   ...props
 }: SVGProps<SVGSVGElement>) {

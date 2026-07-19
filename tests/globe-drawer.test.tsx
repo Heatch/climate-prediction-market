@@ -11,6 +11,7 @@ import {
   MarketProvider,
   useMarkets,
 } from "@/components/providers/MarketProvider"
+import { demoMarkets } from "@/lib/markets/data"
 import type { ClimateMarket } from "@/lib/markets/types"
 
 const testMarkets: ClimateMarket[] = [

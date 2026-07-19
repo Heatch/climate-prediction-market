@@ -5,7 +5,7 @@ import { useMarkets } from "@/components/providers/MarketProvider"
 import { useSolanaWallet } from "@/components/providers/SolanaProvider"
 import WalletConnectButton from "@/components/wallet/WalletConnectButton"
 import { SOLANA_CONFIG_WARNING, SOLANA_PROGRAM_ID } from "@/lib/solana/config"
-import TerraFormMark from "@/components/ui/TerraFormMark"
+import ClymaMark from "@/components/ui/ClymaMark"
 
 interface NavbarProps {
   search: string
@@ -39,14 +39,14 @@ export default function Navbar({
         <a
           href="#top"
           className="group pointer-events-auto order-1 flex shrink-0 items-center gap-2.5 md:order-3 md:mt-auto md:w-full md:border-t md:border-white/10 md:pt-4"
-          aria-label="TerraForm climate atlas home"
+          aria-label="Clyma climate atlas home"
         >
           <span className="grid size-9 place-items-center text-white/85 transition-colors group-hover:text-white">
-            <TerraFormMark data-testid="terraform-mark" className="size-full" />
+            <ClymaMark data-testid="clyma-mark" className="size-full" />
           </span>
           <span>
             <span className="block text-sm font-semibold leading-none tracking-[-0.02em] text-white">
-              TerraForm
+              Clyma
             </span>
             <span className="mt-1 block font-mono text-[7px] uppercase tracking-[0.16em] text-white/40">
               Climate signal atlas

@@ -24,7 +24,7 @@ vi.mock("@/components/wallet/WalletConnectButton", () => ({
   ),
 }))
 
-describe("TerraForm navigation rail", () => {
+describe("Clyma navigation rail", () => {
   it("anchors the new brand in the desktop rail and keeps search interactive", () => {
     const onSearchChange = vi.fn()
     render(<Navbar search="" onSearchChange={onSearchChange} />)
@@ -33,13 +33,13 @@ describe("TerraForm navigation rail", () => {
       name: /primary navigation/i,
     })
     const homeLink = within(navigation).getByRole("link", {
-      name: /terraform climate atlas home/i,
+      name: /clyma climate atlas home/i,
     })
 
     expect(navigation).toHaveClass("md:w-52")
     expect(homeLink).toHaveClass("md:mt-auto")
     expect(within(homeLink).getByTestId("terraform-mark")).toBeInTheDocument()
-    expect(within(homeLink).getByText("TerraForm")).toBeInTheDocument()
+    expect(within(homeLink).getByText("Clyma")).toBeInTheDocument()
     expect(screen.queryByText(/klashi/i)).not.toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText(/search climate markets/i), {

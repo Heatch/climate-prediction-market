@@ -1,8 +1,8 @@
 {
-  "name": "terraform-climate-markets",
+  "name": "clyma",
   "version": "0.1.0",
   "private": true,
-  "description": "Experimental Solana Devnet climate prediction market prototype",
+  "description": "Clyma — experimental Solana Devnet climate prediction market",
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",

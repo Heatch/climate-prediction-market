@@ -35,7 +35,7 @@ const HISTORY_CADENCE_DAYS = 14
 const GENERATION_TIMEOUT_MS = 90_000
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000
 const FAILURE_BACKOFF_MS = 5 * 60 * 1000
-const CACHE_DIR = path.join(os.tmpdir(), "terraform-climate")
+const CACHE_DIR = path.join(os.tmpdir(), "clyma")
 const CACHE_FILE = path.join(CACHE_DIR, "gemini-markets.json")
 
 const EVIDENCE_KINDS = [
