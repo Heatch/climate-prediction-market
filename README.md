@@ -136,6 +136,9 @@ GEMINI_MARKET_COUNT=24
 | `GEMINI_API_KEY`               | Google Gemini API key for market generation       |
 | `GEMINI_MODEL`                 | Model for generation (default: `gemini-3.5-flash`)|
 | `GEMINI_MARKET_COUNT`          | Markets to generate (default 24, max 40)          |
+| `FREESOLO_API_KEY`             | Freesolo/Modal endpoint key for AI oddsmaker      |
+| `GRPO_ADAPTER_ID`              | Deployed GRPO adapter run ID (e.g. `flash-XXXX`)  |
+| `TAVILY_API_KEY`               | Optional; Tavily search API for live news context |
 
 Prod mode requires `MONGODB_URI` and `GEMINI_API_KEY`. Demo mode works without
 either — it serves the bundled demo catalogue.
