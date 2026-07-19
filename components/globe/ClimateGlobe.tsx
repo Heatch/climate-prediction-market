@@ -14,7 +14,12 @@ import {
   closestContinent,
   isContinentName,
 } from "@/lib/geo/regions"
-import { CATEGORY_LABELS } from "@/lib/markets/categories"
+import {
+  CATEGORY_ACCENTS,
+  CATEGORY_LABELS,
+  HAZARD_MARKER_EFFECTS,
+  resolveClusterHazardCategory,
+} from "@/lib/markets/categories"
 import type { ClimateMarket, MarketCategory } from "@/lib/markets/types"
 import { clampProbability } from "@/lib/utils/likelihood"
 
@@ -109,50 +114,59 @@ function drawHazardGlyph(
 ) {
   context.save()
   context.translate(x, y)
-  context.scale(1.35, 1.35)
+  context.scale(1.5, 1.5)
   context.translate(-x, -y)
   context.strokeStyle = color
   context.fillStyle = color
-  context.lineWidth = 1.25
+  context.lineWidth = 1.2
   context.lineCap = "round"
   context.lineJoin = "round"
 
   switch (category) {
     case "hurricane":
       context.beginPath()
-      context.arc(x - 1.1, y - 0.5, 2.8, Math.PI * 0.15, Math.PI * 1.15)
+      context.arc(x - 1.2, y - 0.6, 3, Math.PI * 0.1, Math.PI * 1.08)
       context.stroke()
       context.beginPath()
-      context.arc(x + 1.1, y + 0.5, 2.8, Math.PI * 1.15, Math.PI * 2.15)
+      context.arc(x + 1.2, y + 0.6, 3, Math.PI * 1.1, Math.PI * 2.08)
       context.stroke()
       context.beginPath()
-      context.arc(x, y, 0.65, 0, Math.PI * 2)
+      context.arc(x, y, 0.85, 0, Math.PI * 2)
       context.fill()
       break
     case "drought":
       context.beginPath()
-      context.moveTo(x - 3.8, y - 1.2)
-      context.lineTo(x + 3.8, y - 1.2)
-      context.moveTo(x - 1.5, y - 1.2)
-      context.lineTo(x, y + 0.5)
-      context.lineTo(x - 1, y + 2)
-      context.lineTo(x + 0.8, y + 3.6)
-      context.moveTo(x, y + 0.5)
-      context.lineTo(x + 2, y + 1.4)
-      context.stroke()
+      context.arc(x + 2.4, y - 2.7, 1.25, 0, Math.PI * 2)
+      context.fill()
       context.beginPath()
-      context.arc(x + 2.4, y - 3.2, 1.1, 0, Math.PI * 2)
+      context.moveTo(x + 2.4, y - 4.7)
+      context.lineTo(x + 2.4, y - 4.1)
+      context.moveTo(x + 0.4, y - 2.7)
+      context.lineTo(x + 1, y - 2.7)
+      context.moveTo(x - 3.8, y - 0.5)
+      context.lineTo(x + 3.8, y - 0.5)
+      context.moveTo(x, y - 0.5)
+      context.lineTo(x, y + 1.2)
+      context.lineTo(x - 1.4, y + 2.5)
+      context.lineTo(x, y + 4)
+      context.moveTo(x, y + 1.2)
+      context.lineTo(x + 1.8, y + 2.3)
       context.stroke()
       break
     case "temperature":
       context.beginPath()
-      context.moveTo(x, y - 3.8)
-      context.lineTo(x, y + 1.6)
-      context.moveTo(x + 1.6, y - 2.4)
-      context.lineTo(x + 3, y - 2.4)
+      context.moveTo(x - 1.25, y - 3.8)
+      context.lineTo(x - 1.25, y + 1.2)
+      context.moveTo(x + 1.25, y - 3.8)
+      context.lineTo(x + 1.25, y + 1.2)
+      context.arc(x, y + 2.1, 2.05, Math.PI * 1.82, Math.PI * 1.18)
       context.stroke()
       context.beginPath()
-      context.arc(x, y + 2.7, 1.55, 0, Math.PI * 2)
+      context.moveTo(x, y - 2.7)
+      context.lineTo(x, y + 2)
+      context.stroke()
+      context.beginPath()
+      context.arc(x, y + 2.2, 1.35, 0, Math.PI * 2)
       context.fill()
       break
     case "rainfall":
@@ -161,9 +175,11 @@ function drawHazardGlyph(
       context.arc(x + 1.2, y - 1.2, 2.2, Math.PI, Math.PI * 2)
       context.moveTo(x - 3.1, y - 0.7)
       context.lineTo(x + 3.4, y - 0.7)
-      context.moveTo(x - 1.7, y + 1.1)
-      context.lineTo(x - 1.7, y + 3.4)
-      context.moveTo(x + 1.6, y + 1.1)
+      context.moveTo(x - 2.2, y + 1.1)
+      context.lineTo(x - 2.8, y + 3.4)
+      context.moveTo(x, y + 1.1)
+      context.lineTo(x - 0.6, y + 3.8)
+      context.moveTo(x + 2.2, y + 1.1)
       context.lineTo(x + 1.6, y + 3.4)
       context.stroke()
       break
@@ -180,12 +196,6 @@ function drawHazardGlyph(
       context.lineTo(x + 0.4, y + 0.5)
       context.lineTo(x + 1.8, y + 1.2)
       context.lineTo(x + 3.2, y + 0.5)
-      context.moveTo(x - 3.8, y + 3.2)
-      context.lineTo(x - 2.4, y + 2.5)
-      context.lineTo(x - 1, y + 3.2)
-      context.lineTo(x + 0.4, y + 2.5)
-      context.lineTo(x + 1.8, y + 3.2)
-      context.lineTo(x + 3.2, y + 2.5)
       context.stroke()
       break
     case "crop-yield":
@@ -587,73 +597,49 @@ export default function ClimateGlobe({
         const selected = cluster.markets.some(
           (market) => market.id === selectedMarketIdRef.current,
         )
-        const markerMarket =
-          cluster.markets.find(
-            (market) => market.id === selectedMarketIdRef.current,
-          ) ?? cluster.markets[0]
-        if (!markerMarket) continue
-        let glyphCategory = markerMarket.category
-        if (!selected && cluster.markets.length > 1) {
-          const categoryCounts = new Map<MarketCategory, number>()
-          for (const market of cluster.markets) {
-            categoryCounts.set(
-              market.category,
-              (categoryCounts.get(market.category) ?? 0) + 1,
-            )
-          }
-          let highestCategoryCount = 0
-          for (const [category, count] of categoryCounts) {
-            if (count > highestCategoryCount) {
-              glyphCategory = category
-              highestCategoryCount = count
-            }
-          }
-        }
+        const glyphCategory = resolveClusterHazardCategory(
+          cluster.markets,
+          selectedMarketIdRef.current,
+        )
+        if (!glyphCategory) continue
         const markerRadius = cluster.markets.length > 1 ? 10 : 9
         const hovered = cluster.markets.some(
           (market) =>
             market.id === hoveredMarketIdRef.current ||
             market.id === hoveredCanvasMarketIdRef.current,
         )
+        const markerState = selected
+          ? "selected"
+          : hovered
+            ? "hovered"
+            : "default"
+        const markerEffect = HAZARD_MARKER_EFFECTS[markerState]
+        const accent = CATEGORY_ACCENTS[glyphCategory]
 
-        // Shape, rather than color, identifies the hazard. Mixed clusters show
-        // their dominant category while the numeric badge signals aggregation.
+        // Shape remains the primary category cue. The tight, static accent
+        // halo reinforces it without recreating the removed likelihood radius.
+        context.save()
         context.beginPath()
         context.arc(
           cluster.x,
           cluster.y,
-          markerRadius + (selected ? 5 : 3),
+          markerRadius + markerEffect.haloExpansion,
           0,
           Math.PI * 2,
         )
-        context.strokeStyle = selected
-          ? "rgba(255, 255, 255, 0.92)"
-          : "rgba(255, 255, 255, 0.28)"
-        context.lineWidth = selected ? 1.6 : 1
-        context.stroke()
-
-        if (selected || hovered) {
-          context.beginPath()
-          context.arc(
-            cluster.x,
-            cluster.y,
-            markerRadius + (selected ? 9 : 7),
-            0,
-            Math.PI * 2,
-          )
-          context.strokeStyle = selected
-            ? "rgba(255, 255, 255, 0.18)"
-            : "rgba(255, 255, 255, 0.14)"
-          context.lineWidth = 1
-          context.stroke()
-        }
+        context.fillStyle = `${accent}${markerEffect.haloAlpha}`
+        context.fill()
 
         context.beginPath()
         context.arc(cluster.x, cluster.y, markerRadius, 0, Math.PI * 2)
-        context.fillStyle = selected ? "#f8fafc" : "rgba(3, 8, 7, 0.9)"
+        context.fillStyle = selected ? accent : "rgba(3, 8, 7, 0.94)"
+        context.shadowColor = `${accent}bf`
+        context.shadowBlur = markerEffect.shadowBlur
         context.fill()
-        context.strokeStyle = "rgba(255, 255, 255, 0.82)"
-        context.lineWidth = selected ? 1.5 : 1
+        context.shadowBlur = 0
+        context.shadowColor = "transparent"
+        context.strokeStyle = accent
+        context.lineWidth = selected ? 1.8 : 1.25
         context.stroke()
 
         drawHazardGlyph(
@@ -661,7 +647,7 @@ export default function ClimateGlobe({
           glyphCategory,
           cluster.x,
           cluster.y,
-          selected ? "#050807" : "rgba(255, 255, 255, 0.96)",
+          selected ? "#050807" : accent,
         )
 
         if (cluster.markets.length > 1) {
@@ -669,7 +655,7 @@ export default function ClimateGlobe({
           const badgeY = cluster.y - markerRadius
           context.beginPath()
           context.arc(badgeX, badgeY, 5.5, 0, Math.PI * 2)
-          context.fillStyle = "#ffffff"
+          context.fillStyle = accent
           context.fill()
           context.strokeStyle = "#050807"
           context.lineWidth = 1
@@ -680,6 +666,7 @@ export default function ClimateGlobe({
           context.textBaseline = "middle"
           context.fillText(String(cluster.markets.length), badgeX, badgeY + 0.5)
         }
+        context.restore()
       }
       context.restore()
     }
