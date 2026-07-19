@@ -173,7 +173,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 96,
     history: buildHistory({
       start: "2026-05-01T00:00:00.000Z",
-      yesProbabilities: [0.31, 0.34, 0.32, 0.37, 0.41, 0.39, 0.43],
+      yesProbabilities: [0.45, 0.34, 0.32, 0.37, 0.41, 0.39, 0.43],
       baseLiquidity: 510,
       baseVolume: 650,
       liquidityStep: 81.67,
@@ -235,7 +235,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 91,
     history: buildHistory({
       start: "2026-04-15T00:00:00.000Z",
-      yesProbabilities: [0.48, 0.51, 0.56, 0.58, 0.55, 0.59, 0.62],
+      yesProbabilities: [0.4, 0.51, 0.56, 0.58, 0.55, 0.59, 0.62],
       baseLiquidity: 650,
       baseVolume: 840,
       liquidityStep: 100,
@@ -361,7 +361,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 94,
     history: buildHistory({
       start: "2026-05-10T00:00:00.000Z",
-      yesProbabilities: [0.36, 0.39, 0.43, 0.46, 0.51, 0.55, 0.58],
+      yesProbabilities: [0.45, 0.39, 0.43, 0.46, 0.51, 0.55, 0.58],
       baseLiquidity: 540,
       baseVolume: 770,
       liquidityStep: 110,
@@ -423,7 +423,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 88,
     history: buildHistory({
       start: "2026-05-20T00:00:00.000Z",
-      yesProbabilities: [0.49, 0.52, 0.57, 0.61, 0.64, 0.63, 0.67],
+      yesProbabilities: [0.45, 0.52, 0.57, 0.61, 0.64, 0.63, 0.67],
       baseLiquidity: 350,
       baseVolume: 410,
       liquidityStep: 75,
@@ -485,7 +485,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 72,
     history: buildHistory({
       start: "2026-06-01T00:00:00.000Z",
-      yesProbabilities: [0.46, 0.44, 0.43, 0.4, 0.41, 0.39, 0.38],
+      yesProbabilities: [0.45, 0.44, 0.43, 0.4, 0.41, 0.39, 0.38],
       baseLiquidity: 330,
       baseVolume: 290,
       liquidityStep: 70,
@@ -547,7 +547,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 83,
     history: buildHistory({
       start: "2026-06-10T00:00:00.000Z",
-      yesProbabilities: [0.28, 0.3, 0.29, 0.31, 0.33, 0.34, 0.35],
+      yesProbabilities: [0.4, 0.3, 0.29, 0.31, 0.33, 0.34, 0.35],
       baseLiquidity: 470,
       baseVolume: 440,
       liquidityStep: 80,
@@ -608,7 +608,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 48,
     history: buildHistory({
       start: "2026-02-01T00:00:00.000Z",
-      yesProbabilities: [0.55, 0.53, 0.51, 0.49, 0.47, 0.45, 0.46],
+      yesProbabilities: [0.4, 0.53, 0.51, 0.49, 0.47, 0.45, 0.46],
       baseLiquidity: 410,
       baseVolume: 520,
       liquidityStep: 65,
@@ -677,7 +677,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 12,
     history: buildHistory({
       start: "2026-04-20T00:00:00.000Z",
-      yesProbabilities: [0.37, 0.35, 0.32, 0.31, 0.3, 0.29],
+      yesProbabilities: [0.45, 0.35, 0.32, 0.31, 0.3, 0.29],
       baseLiquidity: 350,
       baseVolume: 280,
       liquidityStep: 50,
@@ -745,7 +745,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 90,
     history: buildHistory({
       start: "2026-05-05T00:00:00.000Z",
-      yesProbabilities: [0.62, 0.66, 0.69, 0.72, 0.75, 0.77, 0.78],
+      yesProbabilities: [0.45, 0.66, 0.69, 0.72, 0.75, 0.77, 0.78],
       baseLiquidity: 620,
       baseVolume: 900,
       liquidityStep: 90,
@@ -806,7 +806,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 74,
     history: buildHistory({
       start: "2026-05-12T00:00:00.000Z",
-      yesProbabilities: [0.5, 0.48, 0.46, 0.45, 0.43, 0.44, 0.44],
+      yesProbabilities: [0.45, 0.48, 0.46, 0.45, 0.43, 0.44, 0.44],
       baseLiquidity: 500,
       baseVolume: 600,
       liquidityStep: 57,
@@ -867,7 +867,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 69,
     history: buildHistory({
       start: "2026-05-18T00:00:00.000Z",
-      yesProbabilities: [0.44, 0.47, 0.5, 0.52, 0.54, 0.53, 0.55],
+      yesProbabilities: [0.4, 0.47, 0.5, 0.52, 0.54, 0.53, 0.55],
       baseLiquidity: 520,
       baseVolume: 700,
       liquidityStep: 68,
@@ -928,7 +928,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 85,
     history: buildHistory({
       start: "2026-06-01T00:00:00.000Z",
-      yesProbabilities: [0.5, 0.54, 0.57, 0.6, 0.62, 0.63, 0.64],
+      yesProbabilities: [0.4, 0.54, 0.57, 0.6, 0.62, 0.63, 0.64],
       baseLiquidity: 560,
       baseVolume: 760,
       liquidityStep: 80,
@@ -989,7 +989,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 72,
     history: buildHistory({
       start: "2026-05-22T00:00:00.000Z",
-      yesProbabilities: [0.56, 0.59, 0.62, 0.64, 0.66, 0.68, 0.69],
+      yesProbabilities: [0.4, 0.59, 0.62, 0.64, 0.66, 0.68, 0.69],
       baseLiquidity: 560,
       baseVolume: 720,
       liquidityStep: 72,
@@ -1050,7 +1050,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 76,
     history: buildHistory({
       start: "2026-05-28T00:00:00.000Z",
-      yesProbabilities: [0.46, 0.49, 0.51, 0.53, 0.55, 0.56, 0.57],
+      yesProbabilities: [0.4, 0.49, 0.51, 0.53, 0.55, 0.56, 0.57],
       baseLiquidity: 520,
       baseVolume: 640,
       liquidityStep: 66,
@@ -1111,7 +1111,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 70,
     history: buildHistory({
       start: "2026-06-03T00:00:00.000Z",
-      yesProbabilities: [0.6, 0.64, 0.67, 0.7, 0.72, 0.73, 0.74],
+      yesProbabilities: [0.45, 0.64, 0.67, 0.7, 0.72, 0.73, 0.74],
       baseLiquidity: 540,
       baseVolume: 660,
       liquidityStep: 74,
@@ -1172,7 +1172,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 88,
     history: buildHistory({
       start: "2026-06-05T00:00:00.000Z",
-      yesProbabilities: [0.68, 0.72, 0.75, 0.78, 0.8, 0.81, 0.82],
+      yesProbabilities: [0.55, 0.72, 0.75, 0.78, 0.8, 0.81, 0.82],
       baseLiquidity: 560,
       baseVolume: 720,
       liquidityStep: 86,
@@ -1233,7 +1233,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 58,
     history: buildHistory({
       start: "2026-06-08T00:00:00.000Z",
-      yesProbabilities: [0.42, 0.4, 0.38, 0.36, 0.35, 0.34, 0.33],
+      yesProbabilities: [0.45, 0.4, 0.38, 0.36, 0.35, 0.34, 0.33],
       baseLiquidity: 500,
       baseVolume: 520,
       liquidityStep: 60,
@@ -1294,7 +1294,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 87,
     history: buildHistory({
       start: "2026-05-30T00:00:00.000Z",
-      yesProbabilities: [0.54, 0.57, 0.6, 0.62, 0.64, 0.65, 0.66],
+      yesProbabilities: [0.5, 0.57, 0.6, 0.62, 0.64, 0.65, 0.66],
       baseLiquidity: 560,
       baseVolume: 780,
       liquidityStep: 76,
@@ -1355,7 +1355,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 79,
     history: buildHistory({
       start: "2026-06-10T00:00:00.000Z",
-      yesProbabilities: [0.48, 0.51, 0.54, 0.56, 0.57, 0.58, 0.59],
+      yesProbabilities: [0.55, 0.51, 0.54, 0.56, 0.57, 0.58, 0.59],
       baseLiquidity: 540,
       baseVolume: 700,
       liquidityStep: 70,
@@ -1416,7 +1416,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 71,
     history: buildHistory({
       start: "2026-06-12T00:00:00.000Z",
-      yesProbabilities: [0.42, 0.44, 0.46, 0.47, 0.48, 0.47, 0.48],
+      yesProbabilities: [0.4, 0.44, 0.46, 0.47, 0.48, 0.47, 0.48],
       baseLiquidity: 500,
       baseVolume: 560,
       liquidityStep: 62,
@@ -1477,7 +1477,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 92,
     history: buildHistory({
       start: "2026-06-14T00:00:00.000Z",
-      yesProbabilities: [0.74, 0.77, 0.8, 0.82, 0.84, 0.85, 0.86],
+      yesProbabilities: [0.55, 0.77, 0.8, 0.82, 0.84, 0.85, 0.86],
       baseLiquidity: 560,
       baseVolume: 800,
       liquidityStep: 90,
@@ -1538,7 +1538,7 @@ export const demoMarkets: ClimateMarket[] = [
     trendingScore: 78,
     history: buildHistory({
       start: "2026-06-16T00:00:00.000Z",
-      yesProbabilities: [0.52, 0.55, 0.57, 0.59, 0.6, 0.61, 0.62],
+      yesProbabilities: [0.5, 0.55, 0.57, 0.59, 0.6, 0.61, 0.62],
       baseLiquidity: 520,
       baseVolume: 620,
       liquidityStep: 72,
