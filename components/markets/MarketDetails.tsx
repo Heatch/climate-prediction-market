@@ -44,11 +44,7 @@ export default function MarketDetails({
   const currentProbability = market.yesPrice
 
   const effectiveHistory = useMemo(() => {
-    if (aiProb === null || market.history.length === 0) return market.history
-    const initialRaw = market.history[0]?.yesProbability ?? currentProbability
-    const currentRaw = market.history.at(-1)?.yesProbability ?? currentProbability
-    const rawDelta = currentRaw - initialRaw
-
+    if (aiProb === null) return market.history
     return market.history.map((point, index) => {
       if (index === 0) {
         return {
@@ -57,16 +53,9 @@ export default function MarketDetails({
           noProbability: Number((1 - aiProb).toFixed(2)),
         }
       }
-      // Linearly interpolate intermediate points towards current price
-      const progress = index / (market.history.length - 1)
-      const interpolatedYes = Math.min(0.99, Math.max(0.01, Number((aiProb + rawDelta * progress).toFixed(2))))
-      return {
-        ...point,
-        yesProbability: interpolatedYes,
-        noProbability: Number((1 - interpolatedYes).toFixed(2)),
-      }
+      return point
     })
-  }, [aiProb, market.history, currentProbability])
+  }, [aiProb, market.history])
 
   const openingProbability = effectiveHistory[0]?.yesProbability ?? currentProbability
   const probabilityChange = (currentProbability - openingProbability) * 100
