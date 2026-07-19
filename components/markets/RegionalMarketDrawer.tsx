@@ -16,8 +16,10 @@ export default function RegionalMarketDrawer() {
     selectedMarket,
     isDrawerOpen,
     isPortfolioMode,
+    detailReturnView,
     selectMarket,
     showRegionMarkets,
+    showPortfolio,
     closeDrawer,
   } = useMarkets()
   const [search, setSearch] = useState("")
@@ -90,8 +92,11 @@ export default function RegionalMarketDrawer() {
     )
   }, [category, markets, search, selectedRegion])
 
+  const shouldShowPortfolio =
+    isPortfolioMode || (!selectedMarket && !selectedRegion && isDrawerOpen)
+
   if (!isDrawerOpen) return null
-  if (!isPortfolioMode && !selectedRegion) return null
+  if (!shouldShowPortfolio && !selectedRegion) return null
 
   const activeCount = selectedRegion
     ? markets.filter(
@@ -162,12 +167,21 @@ export default function RegionalMarketDrawer() {
           </div>
 
           <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5">
-            {isPortfolioMode ? (
+            {shouldShowPortfolio ? (
               <PortfolioPanel />
             ) : selectedMarket ? (
               <MarketDetails
                 market={selectedMarket}
-                onBack={showRegionMarkets}
+                onBack={
+                  detailReturnView === "portfolio"
+                    ? showPortfolio
+                    : showRegionMarkets
+                }
+                backLabel={
+                  detailReturnView === "portfolio"
+                    ? "My Positions"
+                    : selectedRegion ?? selectedMarket.continent
+                }
               />
             ) : (
               <div>

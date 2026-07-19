@@ -135,7 +135,7 @@ export default function PortfolioPanel() {
                   const target = settleablePositions[0]
                   const market =
                     target && markets.find((m) => m.id === target.marketId)
-                  if (market) selectMarket(market)
+                  if (market) selectMarket(market, "portfolio")
                 }}
                 className="shrink-0 rounded-full border border-emerald-400/40 bg-emerald-400/15 px-3 py-1.5 text-[11px] font-bold text-emerald-200 transition hover:bg-emerald-400/25"
               >
@@ -210,7 +210,7 @@ function PositionRow({
       <button
         type="button"
         disabled={!market}
-        onClick={() => market && selectMarket(market)}
+        onClick={() => market && selectMarket(market, "portfolio")}
         className="line-clamp-2 text-left text-xs font-semibold leading-4 text-neutral-100 hover:underline disabled:cursor-default"
       >
         {position.marketQuestion}

@@ -36,6 +36,7 @@ type MarketContextValue = {
   selectedMarket: ClimateMarket | null
   isDrawerOpen: boolean
   isPortfolioMode: boolean
+  detailReturnView: "portfolio" | "region" | null
   isLoading: boolean
   now: number
   search: string
@@ -47,7 +48,10 @@ type MarketContextValue = {
   setStatus: (value: StatusFilter) => void
   setSort: (value: MarketSort) => void
   selectRegion: (region: string) => void
-  selectMarket: (market: ClimateMarket) => void
+  selectMarket: (
+    market: ClimateMarket,
+    source?: "portfolio" | "region",
+  ) => void
   showRegionMarkets: () => void
   showPortfolio: () => void
   closeDrawer: () => void
@@ -125,6 +129,9 @@ export function MarketProvider({
   )
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isPortfolioMode, setIsPortfolioMode] = useState(false)
+  const [detailReturnView, setDetailReturnView] = useState<
+    "portfolio" | "region" | null
+  >(null)
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState<MarketCategory | "all">("all")
   const [status, setStatus] = useState<StatusFilter>("all")
@@ -287,22 +294,30 @@ export function MarketProvider({
   const selectRegion = useCallback((region: string) => {
     setSelectedRegion(region)
     setSelectedMarket(null)
+    setDetailReturnView(null)
     setIsDrawerOpen(true)
   }, [])
 
-  const selectMarket = useCallback((market: ClimateMarket) => {
-    setSelectedRegion(market.continent)
-    setSelectedMarket(market)
-    setIsDrawerOpen(true)
-  }, [])
+  const selectMarket = useCallback(
+    (market: ClimateMarket, source: "portfolio" | "region" = "region") => {
+      setSelectedRegion(market.continent)
+      setSelectedMarket(market)
+      setIsPortfolioMode(false)
+      setDetailReturnView(source === "portfolio" ? "portfolio" : "region")
+      setIsDrawerOpen(true)
+    },
+    [],
+  )
 
   const showRegionMarkets = useCallback(() => {
     setSelectedMarket(null)
     setIsPortfolioMode(false)
+    setDetailReturnView(null)
   }, [])
   const showPortfolio = useCallback(() => {
     setSelectedMarket(null)
     setIsPortfolioMode(true)
+    setDetailReturnView(null)
     setIsDrawerOpen(true)
   }, [])
   const closeDrawer = useCallback(() => {
@@ -310,6 +325,7 @@ export function MarketProvider({
     setSelectedMarket(null)
     setSelectedRegion(null)
     setIsPortfolioMode(false)
+    setDetailReturnView(null)
   }, [])
 
   const value = useMemo<MarketContextValue>(
@@ -321,6 +337,7 @@ export function MarketProvider({
       selectedMarket,
       isDrawerOpen,
       isPortfolioMode,
+      detailReturnView,
       isLoading,
       now,
       search,
@@ -343,6 +360,7 @@ export function MarketProvider({
       closeDrawer,
       isDrawerOpen,
       isPortfolioMode,
+      detailReturnView,
       isLoading,
       markets,
       now,

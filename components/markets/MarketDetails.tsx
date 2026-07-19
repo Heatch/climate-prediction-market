@@ -21,9 +21,14 @@ import {
 interface MarketDetailsProps {
   market: ClimateMarket
   onBack: () => void
+  backLabel?: string
 }
 
-export default function MarketDetails({ market, onBack }: MarketDetailsProps) {
+export default function MarketDetails({
+  market,
+  onBack,
+  backLabel,
+}: MarketDetailsProps) {
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
@@ -64,7 +69,7 @@ export default function MarketDetails({ market, onBack }: MarketDetailsProps) {
           onClick={onBack}
           className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-white/55 transition hover:border-white/35 hover:bg-white/10 hover:text-white"
         >
-          ← {market.continent}
+          ← {backLabel ?? market.continent}
         </button>
         <div className="flex items-center gap-2 font-mono text-[8px] uppercase tracking-[0.13em]">
           <span className="rounded-full border border-white/10 px-2.5 py-1 text-white/35">
