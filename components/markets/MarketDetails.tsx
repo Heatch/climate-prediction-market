@@ -6,7 +6,7 @@ import HazardIcon from "@/components/icons/HazardIcon"
 import MarketChart from "@/components/markets/MarketChart"
 import PredictionForm from "@/components/trading/PredictionForm"
 import RedeemPosition from "@/components/trading/RedeemPosition"
-import { CATEGORY_LABELS } from "@/lib/markets/categories"
+import { CATEGORY_ACCENTS, CATEGORY_LABELS } from "@/lib/markets/categories"
 import type { ClimateMarket } from "@/lib/markets/types"
 import {
   formatCompact,
@@ -37,6 +37,7 @@ export default function MarketDetails({ market, onBack }: MarketDetailsProps) {
   }, [currentProbability, market.history])
   const totalLiquidity = market.yesLiquidity + market.noLiquidity
   const displayQuestion = market.question.replace(/^\[DEMO\]\s*/i, "")
+  const categoryAccent = CATEGORY_ACCENTS[market.category]
   return (
     <article aria-labelledby="market-question" className="pb-8 text-white">
       <div className="flex items-center justify-between gap-3">
@@ -60,7 +61,12 @@ export default function MarketDetails({ market, onBack }: MarketDetailsProps) {
 
       <div className="mt-5 flex items-start gap-3">
         <span
-          className="grid size-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/[0.035] text-white/70"
+          className="grid size-10 shrink-0 place-items-center rounded-xl border"
+          style={{
+            backgroundColor: `${categoryAccent}12`,
+            borderColor: `${categoryAccent}4d`,
+            boxShadow: `0 0 14px ${categoryAccent}24`,
+          }}
           aria-hidden="true"
         >
           <HazardIcon category={market.category} className="size-5" />

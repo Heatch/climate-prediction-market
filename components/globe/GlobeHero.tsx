@@ -4,7 +4,7 @@ import ClimateGlobe from "@/components/globe/ClimateGlobe"
 import HazardIcon from "@/components/icons/HazardIcon"
 import MarketFilters from "@/components/markets/MarketFilters"
 import { useMarkets } from "@/components/providers/MarketProvider"
-import { CATEGORY_LABELS } from "@/lib/markets/categories"
+import { CATEGORY_ACCENTS, CATEGORY_LABELS } from "@/lib/markets/categories"
 import type { MarketCategory } from "@/lib/markets/types"
 
 const LEGEND_CATEGORIES: MarketCategory[] = [
@@ -130,7 +130,14 @@ export default function GlobeHero() {
                 key={item}
                 className="text-white/42 flex items-center gap-2 text-[9px]"
               >
-                <span className="grid size-5 place-items-center rounded-md border border-white/10 bg-white/[0.04] text-white/60">
+                <span
+                  className="grid size-5 place-items-center rounded-md border"
+                  style={{
+                    backgroundColor: `${CATEGORY_ACCENTS[item]}12`,
+                    borderColor: `${CATEGORY_ACCENTS[item]}40`,
+                    boxShadow: `0 0 10px ${CATEGORY_ACCENTS[item]}26`,
+                  }}
+                >
                   <HazardIcon category={item} className="size-4" />
                 </span>
                 {CATEGORY_LABELS[item]}

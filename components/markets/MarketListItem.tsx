@@ -4,7 +4,7 @@ import { MiniMarketChart } from "@/components/markets/MarketChart"
 import HazardIcon from "@/components/icons/HazardIcon"
 import { useGlobeLink } from "@/components/providers/GlobeLinkProvider"
 import { useMarkets } from "@/components/providers/MarketProvider"
-import { CATEGORY_LABELS } from "@/lib/markets/categories"
+import { CATEGORY_ACCENTS, CATEGORY_LABELS } from "@/lib/markets/categories"
 import type { ClimateMarket } from "@/lib/markets/types"
 import {
   formatCompact,
@@ -47,6 +47,7 @@ export default function MarketListItem({
   const daysSinceCreated = (now - Date.parse(market.createdAt)) / DAY_MS
   const isNew = now > 0 && daysSinceCreated >= 0 && daysSinceCreated <= NEW_DAYS
   const isDark = tone === "dark"
+  const categoryAccent = CATEGORY_ACCENTS[market.category]
 
   return (
     <button
@@ -66,10 +67,12 @@ export default function MarketListItem({
       <div className="flex items-start gap-3">
         <span
           className={`grid size-9 shrink-0 place-items-center rounded-full border ${
-            isDark
-              ? "border-white/15 bg-white/[0.05] text-white/70"
-              : "border-neutral-200 bg-neutral-50 text-neutral-600"
+            isDark ? "bg-white/[0.04]" : "bg-neutral-950"
           }`}
+          style={{
+            borderColor: `${categoryAccent}55`,
+            boxShadow: `0 0 12px ${categoryAccent}24`,
+          }}
           aria-hidden="true"
         >
           <HazardIcon category={market.category} className="size-[18px]" />
